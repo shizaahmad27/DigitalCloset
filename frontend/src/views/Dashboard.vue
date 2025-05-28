@@ -27,24 +27,24 @@
       <h2 class="section-title">
         Perfect for Today 🌟
       </h2>
-      
+
       <div class="recommendation-cards">
-        <div v-for="recommendation in todaysRecommendations" 
-             :key="recommendation.id" 
+        <div v-for="recommendation in todaysRecommendations"
+             :key="recommendation.id"
              class="recommendation-card"
              @click="selectRecommendation(recommendation)">
           <div class="card-header">
             <span class="recommendation-badge">{{ recommendation.reason }}</span>
           </div>
-          
+
           <div class="outfit-showcase">
-            <div v-for="item in recommendation.items" 
-                 :key="item.id" 
+            <div v-for="item in recommendation.items"
+                 :key="item.id"
                  class="showcase-item">
               <img :src="item.imageUrl" :alt="item.name" class="showcase-image">
             </div>
           </div>
-          
+
           <div class="card-content">
             <h3 class="outfit-name">{{ recommendation.name }}</h3>
             <div class="outfit-tags">
@@ -52,7 +52,7 @@
               <span class="tag">{{ recommendation.occasion }}</span>
             </div>
           </div>
-          
+
           <div class="card-actions">
             <button class="try-btn">✨ Try This Look</button>
           </div>
@@ -63,26 +63,26 @@
     <!-- Quick Stats -->
     <div class="stats-section">
       <h2 class="section-title">Your Wardrobe Stats 📊</h2>
-      
+
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">👗</div>
           <div class="stat-number">{{ stats.totalItems }}</div>
           <div class="stat-label">Total Items</div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">✨</div>
           <div class="stat-number">{{ stats.outfits }}</div>
           <div class="stat-label">Saved Outfits</div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">💖</div>
           <div class="stat-number">{{ stats.favorites }}</div>
           <div class="stat-label">Favorites</div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-icon">🌟</div>
           <div class="stat-number">{{ stats.mostWorn }}</div>
@@ -94,10 +94,10 @@
     <!-- Recent Activity -->
     <div class="activity-section">
       <h2 class="section-title">Recent Activity 📱</h2>
-      
+
       <div class="activity-feed">
-        <div v-for="activity in recentActivity" 
-             :key="activity.id" 
+        <div v-for="activity in recentActivity"
+             :key="activity.id"
              class="activity-item">
           <div class="activity-icon">{{ activity.icon }}</div>
           <div class="activity-content">
@@ -114,12 +114,12 @@
         <span class="action-icon">👗</span>
         <span class="action-text">Browse Wardrobe</span>
       </router-link>
-      
-      <router-link to="/outfit-creator" class="action-btn secondary">
+
+      <router-link to="/create-outfit" class="action-btn secondary">
         <span class="action-icon">✨</span>
         <span class="action-text">Create Outfit</span>
       </router-link>
-      
+
       <button @click="openUploadModal" class="action-btn tertiary">
         <span class="action-icon">📸</span>
         <span class="action-text">Add Items</span>
@@ -590,18 +590,17 @@ onMounted(() => {
     gap: 1.5rem;
     text-align: center;
   }
-  
+
   .recommendation-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .quick-actions {
     grid-template-columns: 1fr;
   }
 }
 </style>
-              

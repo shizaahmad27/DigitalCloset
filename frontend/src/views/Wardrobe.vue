@@ -1,75 +1,65 @@
+<!-- Wardrobe.vue - Fixed main wardrobe view -->
 <template>
   <div class="wardrobe-view">
-    <div class="wardrobe-header">
-      <h1 class="wardrobe-title">Your Wardrobe</h1>
-      <button
-        class="add-item-btn"
-        @click="showAddItemModal = true"
-      >
-        <span class="btn-icon">➕</span>
-        Add New Item
-      </button>
-    </div>
-
     <WardrobeGrid
-      :items="clothingItems"
-      @add-item="showAddItemModal = true"
-      @item-click="viewItem"
-      @favorite="toggleFavorite"
-      @edit="editItem"
-      @delete="deleteItem"
-      @dragstart="handleDragStart"
+        :items="clothingItems"
+        @add-item="showAddItemModal = true"
+        @item-click="viewItem"
+        @favorite="toggleFavorite"
+        @edit="editItem"
+        @delete="deleteItem"
+        @dragstart="handleDragStart"
     />
 
     <!-- Add Item Modal -->
     <div
-      v-if="showAddItemModal"
-      class="modal-overlay"
-      @click="showAddItemModal = false"
+        v-if="showAddItemModal"
+        class="modal-overlay"
+        @click="showAddItemModal = false"
     >
       <div
-        class="modal-content"
-        @click.stop
+          class="modal-content"
+          @click.stop
       >
         <div class="modal-header">
           <h2 class="modal-title">Add New Item</h2>
           <button
-            class="close-btn"
-            @click="showAddItemModal = false"
+              class="close-btn"
+              @click="showAddItemModal = false"
           >
             ✕
           </button>
         </div>
 
         <form
-          class="add-item-form"
-          @submit.prevent="addItem"
+            class="add-item-form"
+            @submit.prevent="addItem"
         >
           <div class="form-group">
             <label class="form-label">Item Image</label>
             <ImageUpload
-              @upload="handleImageUpload"
-              @error="handleUploadError"
+                @upload="handleImageUpload"
+                @error="handleUploadError"
             />
           </div>
 
           <div class="form-group">
             <label class="form-label">Item Name</label>
             <input
-              v-model="newItem.name"
-              type="text"
-              class="form-input"
-              placeholder="Enter item name"
-              required
+                v-model="newItem.name"
+                type="text"
+                class="form-input"
+                placeholder="Enter item name"
+                required
             />
           </div>
 
           <div class="form-group">
             <label class="form-label">Category</label>
             <select
-              v-model="newItem.category"
-              class="form-select"
-              required
+                v-model="newItem.category"
+                class="form-select"
+                required
             >
               <option value="">Select a category</option>
               <option value="top">Top</option>
@@ -83,9 +73,9 @@
           <div class="form-group">
             <label class="form-label">Season</label>
             <select
-              v-model="newItem.season"
-              class="form-select"
-              required
+                v-model="newItem.season"
+                class="form-select"
+                required
             >
               <option value="">Select a season</option>
               <option value="spring">Spring</option>
@@ -99,41 +89,41 @@
             <label class="form-label">Tags</label>
             <div class="tags-input">
               <span
-                v-for="tag in newItem.tags"
-                :key="tag"
-                class="tag"
+                  v-for="tag in newItem.tags"
+                  :key="tag"
+                  class="tag"
               >
                 #{{ tag }}
                 <button
-                  class="remove-tag"
-                  @click="removeTag(tag)"
+                    class="remove-tag"
+                    @click="removeTag(tag)"
                 >
                   ×
                 </button>
               </span>
               <input
-                v-model="newTag"
-                type="text"
-                class="tag-input"
-                placeholder="Add tags..."
-                @keydown.enter.prevent="addTag"
-                @blur="addTag"
+                  v-model="newTag"
+                  type="text"
+                  class="tag-input"
+                  placeholder="Add tags..."
+                  @keydown.enter.prevent="addTag"
+                  @blur="addTag"
               />
             </div>
           </div>
 
           <div class="form-actions">
             <button
-              type="button"
-              class="cancel-btn"
-              @click="showAddItemModal = false"
+                type="button"
+                class="cancel-btn"
+                @click="showAddItemModal = false"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              class="submit-btn"
-              :disabled="!canSubmit"
+                type="submit"
+                class="submit-btn"
+                :disabled="!canSubmit"
             >
               Add Item
             </button>
@@ -144,19 +134,19 @@
 
     <!-- View Item Modal -->
     <div
-      v-if="showViewItemModal"
-      class="modal-overlay"
-      @click="showViewItemModal = false"
+        v-if="showViewItemModal"
+        class="modal-overlay"
+        @click="showViewItemModal = false"
     >
       <div
-        class="modal-content"
-        @click.stop
+          class="modal-content"
+          @click.stop
       >
         <div class="modal-header">
           <h2 class="modal-title">{{ selectedItem.name }}</h2>
           <button
-            class="close-btn"
-            @click="showViewItemModal = false"
+              class="close-btn"
+              @click="showViewItemModal = false"
           >
             ✕
           </button>
@@ -165,8 +155,8 @@
         <div class="item-details">
           <div class="item-image">
             <img
-              :src="selectedItem.imageUrl"
-              :alt="selectedItem.name"
+                :src="selectedItem.imageUrl"
+                :alt="selectedItem.name"
             />
           </div>
 
@@ -191,9 +181,9 @@
               <span class="info-label">Tags</span>
               <div class="item-tags">
                 <span
-                  v-for="tag in selectedItem.tags"
-                  :key="tag"
-                  class="tag"
+                    v-for="tag in selectedItem.tags"
+                    :key="tag"
+                    class="tag"
                 >
                   #{{ tag }}
                 </span>
@@ -204,14 +194,14 @@
 
         <div class="modal-actions">
           <button
-            class="action-btn edit"
-            @click="editItem(selectedItem)"
+              class="action-btn edit"
+              @click="editItem(selectedItem)"
           >
             ✏️ Edit
           </button>
           <button
-            class="action-btn delete"
-            @click="deleteItem(selectedItem)"
+              class="action-btn delete"
+              @click="deleteItem(selectedItem)"
           >
             🗑️ Delete
           </button>
@@ -263,9 +253,9 @@ const clothingItems = ref([
 // Computed
 const canSubmit = computed(() => {
   return newItem.value.name &&
-         newItem.value.category &&
-         newItem.value.season &&
-         newItem.value.imageUrl
+      newItem.value.category &&
+      newItem.value.season &&
+      newItem.value.imageUrl
 })
 
 // Methods
@@ -304,7 +294,7 @@ const addItem = () => {
     isFavorite: false
   }
   clothingItems.value.push(item)
-  
+
   // Reset form
   newItem.value = {
     name: '',
@@ -357,9 +347,9 @@ const getCategoryEmoji = (category) => {
 
 const formatCategory = (category) => {
   return category
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
 }
 
 const getSeasonEmoji = (season) => {
@@ -379,48 +369,8 @@ const formatSeason = (season) => {
 
 <style scoped>
 .wardrobe-view {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.wardrobe-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.wardrobe-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.add-item-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #a78bfa, #ec4899);
-  color: white;
-  border: none;
-  border-radius: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.add-item-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
-}
-
-.btn-icon {
-  font-size: 1.2rem;
+  width: 100%;
+  min-height: calc(100vh - 80px);
 }
 
 /* Modal Styles */
@@ -431,6 +381,7 @@ const formatSeason = (season) => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -438,13 +389,16 @@ const formatSeason = (season) => {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
@@ -457,7 +411,10 @@ const formatSeason = (season) => {
 .modal-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  background: linear-gradient(135deg, #6b46c1, #ec4899);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .close-btn {
@@ -465,8 +422,8 @@ const formatSeason = (season) => {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #f3f4f6;
-  color: #6b7280;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -476,8 +433,8 @@ const formatSeason = (season) => {
 }
 
 .close-btn:hover {
-  background: #e5e7eb;
-  color: #1f2937;
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
 }
 
 /* Form Styles */
@@ -495,17 +452,19 @@ const formatSeason = (season) => {
 
 .form-label {
   font-size: 0.9rem;
-  font-weight: 500;
-  color: #4b5563;
+  font-weight: 600;
+  color: #374151;
 }
 
 .form-input,
 .form-select {
   padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 15px;
   font-size: 1rem;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
 }
 
 .form-input:focus,
@@ -513,32 +472,37 @@ const formatSeason = (season) => {
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .tags-input {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  min-height: 42px;
+  padding: 0.75rem;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 15px;
+  min-height: 50px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
 }
 
 .tag {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(139, 92, 246, 0.1);
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
   color: #8b5cf6;
-  border-radius: 8px;
+  border-radius: 20px;
   font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .remove-tag {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: rgba(139, 92, 246, 0.2);
   color: #8b5cf6;
@@ -553,13 +517,16 @@ const formatSeason = (season) => {
 
 .remove-tag:hover {
   background: rgba(139, 92, 246, 0.3);
+  transform: scale(1.1);
 }
 
 .tag-input {
   border: none;
+  background: transparent;
   padding: 0.25rem;
   font-size: 0.9rem;
   min-width: 100px;
+  flex: 1;
 }
 
 .tag-input:focus {
@@ -576,36 +543,38 @@ const formatSeason = (season) => {
 .cancel-btn,
 .submit-btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 10px;
+  border-radius: 20px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.cancel-btn {
-  background: #f3f4f6;
-  color: #4b5563;
   border: none;
 }
 
+.cancel-btn {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
 .cancel-btn:hover {
-  background: #e5e7eb;
+  background: rgba(107, 114, 128, 0.2);
+  transform: translateY(-1px);
 }
 
 .submit-btn {
   background: linear-gradient(135deg, #a78bfa, #ec4899);
   color: white;
-  border: none;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Item Details Styles */
@@ -613,13 +582,15 @@ const formatSeason = (season) => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 .item-image {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 15px;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .item-image img {
@@ -643,6 +614,7 @@ const formatSeason = (season) => {
 .info-label {
   font-size: 0.9rem;
   color: #6b7280;
+  font-weight: 600;
 }
 
 .info-value {
@@ -651,6 +623,7 @@ const formatSeason = (season) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 500;
 }
 
 .item-tags {
@@ -663,43 +636,51 @@ const formatSeason = (season) => {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .action-btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 10px;
+  border-radius: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  border: none;
 }
 
 .action-btn.edit {
   background: rgba(139, 92, 246, 0.1);
   color: #8b5cf6;
-  border: none;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .action-btn.edit:hover {
   background: rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
 }
 
 .action-btn.delete {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
-  border: none;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .action-btn.delete:hover {
   background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
   .item-details {
     grid-template-columns: 1fr;
   }
+
+  .modal-actions {
+    flex-direction: column;
+  }
 }
-</style> 
+</style>

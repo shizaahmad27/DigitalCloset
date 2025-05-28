@@ -3,26 +3,9 @@
   <div id="app" class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-100">
     <!-- Floating sparkles background -->
     <div class="sparkles-bg"></div>
-    
+
     <!-- Navigation -->
-    <nav class="glass-nav sticky top-0 z-50 backdrop-blur-md bg-white/20 border-b border-white/30">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-              ✨ Digital Closet
-            </h1>
-          </div>
-          <div class="flex space-x-6">
-            <router-link v-for="link in navLinks" :key="link.name" 
-                        :to="link.path" 
-                        class="nav-link text-gray-700 hover:text-pink-600 transition-colors duration-300">
-              {{ link.name }}
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </nav>
+   <navbar/>
 
     <!-- Main Content -->
     <router-view />
@@ -31,6 +14,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import Navbar from './components/Navbar.vue'
 
 const navLinks = ref([
   { name: '🏠 Dashboard', path: '/' },
@@ -56,7 +40,7 @@ const navLinks = ref([
   height: 100%;
   pointer-events: none;
   z-index: -1;
-  background-image: 
+  background-image:
     radial-gradient(2px 2px at 20px 30px, #fbbf24, transparent),
     radial-gradient(2px 2px at 40px 70px, #f472b6, transparent),
     radial-gradient(1px 1px at 90px 40px, #a78bfa, transparent),
