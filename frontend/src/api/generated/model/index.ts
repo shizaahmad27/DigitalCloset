@@ -6,4 +6,19 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from "./clothingItem";
+export * from "./clothingItemCategory";
+export * from "./clothingItemEventTypesItem";
+export * from "./getAll1Params";
+export * from "./getByCategoryParams";
+export * from "./getByEventTypeParams";
+export * from "./getFavoritesParams";
 export * from "./outfit";
+export * from "./pageClothingItem";
+export * from "./pageableObject";
+export * from "./searchByNameParams";
+export * from "./sortObject";
+export * from "./getByTagParams";
+export * from "./unit";
+export * from "./uploadImage200";
+export * from "./uploadImageBody";

@@ -36,7 +36,7 @@
             @submit.prevent="addItem"
         >
           <div class="form-group">
-            <label class="form-label">Item Image</label>
+            <label>Image</label>
             <ImageUpload
                 @upload="handleImageUpload"
                 @error="handleUploadError"
@@ -55,6 +55,16 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea
+                v-model="newItem.description"
+                class="form-input"
+                placeholder="Enter item description"
+                rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Category</label>
             <select
                 v-model="newItem.category"
@@ -62,12 +72,24 @@
                 required
             >
               <option value="">Select a category</option>
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-              <option value="shoes">Shoes</option>
-              <option value="accessory">Accessory</option>
-              <option value="full_outfit">Full Outfit</option>
+              <option value="TOP">Top</option>
+              <option value="BOTTOM">Bottom</option>
+              <option value="DRESS">Dress</option>
+              <option value="OUTERWEAR">Outerwear</option>
+              <option value="SHOES">Shoes</option>
+              <option value="ACCESSORY">Accessory</option>
+              <option value="OUTFIT">Outfit</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Brand</label>
+            <input
+                v-model="newItem.brand"
+                type="text"
+                class="form-input"
+                placeholder="Enter brand name"
+            />
           </div>
 
           <div class="form-group">
@@ -83,6 +105,41 @@
               <option value="fall">Fall</option>
               <option value="winter">Winter</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Event Types</label>
+            <div class="tags-input">
+              <span
+                  v-for="eventType in newItem.eventTypes"
+                  :key="eventType"
+                  class="tag"
+              >
+                #{{ eventType }}
+                <button
+                    class="remove-tag"
+                    @click="removeEventType(eventType)"
+                >
+                  ×
+                </button>
+              </span>
+              <select
+                  v-model="selectedEventType"
+                  class="tag-select"
+                  @change="addEventType"
+              >
+                <option value="">Add event type...</option>
+                <option value="DAY">Day</option>
+                <option value="NIGHT">Night</option>
+                <option value="DATE">Date</option>
+                <option value="CASUAL">Casual</option>
+                <option value="BEACH">Beach</option>
+                <option value="SCHOOL">School</option>
+                <option value="FORMAL">Formal</option>
+                <option value="SPORTS">Sports</option>
+                <option value="WORK">Work</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group">
@@ -181,7 +238,7 @@
               <span class="info-label">Tags</span>
               <div class="item-tags">
                 <span
-                    v-for="tag in selectedItem.tags"
+                    v-for="tag in selectedItem.eventTypes"
                     :key="tag"
                     class="tag"
                 >
@@ -212,9 +269,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import WardrobeGrid from '../components/WardrobeGrid.vue'
-import ImageUpload from '../components/ImageUpload.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
+import { useGetAll1, useCreate1, useUpdate1, useDelete1, useToggleFavorite } from '../api/generated/clothing-item-controller/clothing-item-controller'
+import { uploadImage } from '../services/imageService'
 
 // State
 const showAddItemModal = ref(false)
@@ -222,56 +281,106 @@ const showViewItemModal = ref(false)
 const selectedItem = ref(null)
 const newItem = ref({
   name: '',
-  category: '',
+  category: undefined,
   season: '',
+  eventTypes: [],
   tags: [],
-  imageUrl: null
+  imageUrl: null,
+  description: null,
+  brand: null
 })
 const newTag = ref('')
-const clothingItems = ref([
-  // Mock data - replace with actual data from your store/API
-  {
-    id: 1,
-    name: 'White T-shirt',
-    category: 'top',
-    season: 'summer',
-    tags: ['casual', 'basic'],
-    imageUrl: '/images/tshirt.jpg',
-    isFavorite: false
-  },
-  {
-    id: 2,
-    name: 'Blue Jeans',
-    category: 'bottom',
-    season: 'all',
-    tags: ['casual', 'denim'],
-    imageUrl: '/images/jeans.jpg',
-    isFavorite: true
+const selectedEventType = ref('')
+const page = ref(0)
+const size = ref(20)
+
+// API Hooks
+const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
+  page: page.value,
+  size: size.value,
+  sortBy: 'createdAt',
+  direction: 'DESC'
+})
+
+const createItem = useCreate1({
+  mutation: {
+    onSuccess: () => {
+      refetchItems()
+      showAddItemModal.value = false
+      resetForm()
+    }
   }
-])
+})
+
+const updateItem = useUpdate1({
+  mutation: {
+    onSuccess: () => {
+      refetchItems()
+      showViewItemModal.value = false
+    }
+  }
+})
+
+const deleteItemMutation = useDelete1({
+  mutation: {
+    onSuccess: () => {
+      refetchItems()
+      showViewItemModal.value = false
+    }
+  }
+})
+
+const toggleFavoriteMutation = useToggleFavorite({
+  mutation: {
+    onSuccess: () => {
+      refetchItems()
+    }
+  }
+})
 
 // Computed
+const clothingItems = computed(() => clothingItemsData.value?.content || [])
 const canSubmit = computed(() => {
-  return newItem.value.name &&
-      newItem.value.category &&
-      newItem.value.season &&
-      newItem.value.imageUrl
+  const item = newItem.value
+  return item.name.trim() !== '' &&
+      item.category &&
+      item.season &&
+      item.imageUrl &&
+      item.eventTypes.length > 0
 })
 
 // Methods
-const handleImageUpload = (file) => {
-  // In a real app, you would upload the file to your server
-  // and get back a URL. For now, we'll use a local URL
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    newItem.value.imageUrl = e.target.result
+const handleImageUpload = async (file) => {
+  if (!file) {
+    newItem.value.imageUrl = null
+    return
   }
-  reader.readAsDataURL(file)
+
+  try {
+    const imageUrl = await uploadImage(file)
+    if (!imageUrl) {
+      throw new Error('No image URL returned from server')
+    }
+    newItem.value.imageUrl = imageUrl
+  } catch (error) {
+    console.error('Failed to upload image:', error)
+    alert(`Failed to upload image: ${error.message || 'Unknown error'}`)
+  }
 }
 
 const handleUploadError = (error) => {
-  console.error('Upload error:', error)
-  // Handle error (show notification, etc.)
+  alert(error.message)
+}
+
+const addEventType = () => {
+  if (selectedEventType.value && !newItem.value.eventTypes.includes(selectedEventType.value)) {
+    newItem.value.eventTypes.push(selectedEventType.value)
+  }
+  selectedEventType.value = ''
+}
+
+const removeEventType = (eventType) => {
+  newItem.value.eventTypes = newItem.value.eventTypes.filter(t => t !== eventType)
 }
 
 const addTag = () => {
@@ -286,24 +395,23 @@ const removeTag = (tag) => {
   newItem.value.tags = newItem.value.tags.filter(t => t !== tag)
 }
 
-const addItem = () => {
-  // In a real app, you would send this to your API
-  const item = {
-    id: Date.now(), // Temporary ID
-    ...newItem.value,
-    isFavorite: false
-  }
-  clothingItems.value.push(item)
-
-  // Reset form
+const resetForm = () => {
   newItem.value = {
     name: '',
-    category: '',
+    category: undefined,
     season: '',
+    eventTypes: [],
     tags: [],
-    imageUrl: null
+    imageUrl: null,
+    description: null,
+    brand: null
   }
-  showAddItemModal.value = false
+  newTag.value = ''
+  selectedEventType.value = ''
+}
+
+const addItem = () => {
+  createItem.mutate({ data: newItem.value })
 }
 
 const viewItem = (item) => {
@@ -312,20 +420,20 @@ const viewItem = (item) => {
 }
 
 const toggleFavorite = (item) => {
-  item.isFavorite = !item.isFavorite
-  // In a real app, you would update this in your API
+  if (item.id) {
+    toggleFavoriteMutation.mutate({ id: item.id })
+  }
 }
 
 const editItem = (item) => {
-  // Implement edit functionality
-  console.log('Edit item:', item)
+  selectedItem.value = item
+  showAddItemModal.value = true
+  newItem.value = { ...item }
 }
 
 const deleteItem = (item) => {
-  if (confirm('Are you sure you want to delete this item?')) {
-    clothingItems.value = clothingItems.value.filter(i => i.id !== item.id)
-    showViewItemModal.value = false
-    // In a real app, you would delete this from your API
+  if (confirm('Are you sure you want to delete this item?') && item.id) {
+    deleteItemMutation.mutate({ id: item.id })
   }
 }
 
@@ -336,13 +444,13 @@ const handleDragStart = (item) => {
 
 const getCategoryEmoji = (category) => {
   const emojis = {
-    top: '👚',
-    bottom: '👖',
-    shoes: '👠',
-    accessory: '💍',
-    full_outfit: '👗'
+    TOP: '👚',
+    BOTTOM: '👖',
+    SHOES: '👠',
+    ACCESSORY: '💍',
+    OUTFIT: '👗'
   }
-  return emojis[category.toLowerCase()] || '👕'
+  return emojis[category] || '👕'
 }
 
 const formatCategory = (category) => {
@@ -365,6 +473,11 @@ const getSeasonEmoji = (season) => {
 const formatSeason = (season) => {
   return season.charAt(0).toUpperCase() + season.slice(1)
 }
+
+// Load initial data
+onMounted(() => {
+  refetchItems()
+})
 </script>
 
 <style scoped>
@@ -682,5 +795,23 @@ const formatSeason = (season) => {
   .modal-actions {
     flex-direction: column;
   }
+}
+
+.tag-select {
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  font-size: 0.9rem;
+  min-width: 150px;
+  color: #6b7280;
+}
+
+.tag-select:focus {
+  outline: none;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 80px;
 }
 </style>

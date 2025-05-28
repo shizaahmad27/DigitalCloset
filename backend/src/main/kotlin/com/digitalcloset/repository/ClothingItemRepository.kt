@@ -14,4 +14,5 @@ interface ClothingItemRepository : JpaRepository<ClothingItem, Long> {
     fun findByEventTypesContaining(eventType: EventType, pageable: Pageable): Page<ClothingItem>
     fun findByIsFavoriteTrue(pageable: Pageable): Page<ClothingItem>
     fun findByNameContainingIgnoreCase(name: String, pageable: Pageable): Page<ClothingItem>
+    fun findByTagsContaining(tag: String, pageable: Pageable): Page<ClothingItem>
 } 

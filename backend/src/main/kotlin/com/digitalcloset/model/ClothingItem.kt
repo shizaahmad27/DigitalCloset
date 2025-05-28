@@ -33,7 +33,15 @@ data class ClothingItem(
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(length = 500)
+    var description: String? = null,
+
+    @ElementCollection
+    @CollectionTable(name = "clothing_item_tags", joinColumns = [JoinColumn(name = "clothing_item_id")])
+    @Column(name = "tag")
+    var tags: MutableSet<String> = mutableSetOf()
 )
 
 enum class ClothingCategory {
@@ -56,4 +64,4 @@ enum class EventType {
     FORMAL,
     SPORTS,
     WORK
-} 
+}
