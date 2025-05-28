@@ -42,6 +42,11 @@ data class ClothingItem(
     @JsonProperty("isFavorite")
     var isFavorite: Boolean = false,
 
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(name = "image_id")
+    @JsonProperty("image")
+    var image: Image? = null,
+
     @ElementCollection
     @CollectionTable(name = "clothing_item_event_types", joinColumns = [JoinColumn(name = "clothing_item_id")])
     @Column(name = "event_type", columnDefinition = "VARCHAR(50)")

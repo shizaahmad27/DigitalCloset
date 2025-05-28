@@ -2,6 +2,7 @@ package com.digitalcloset.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "images")
@@ -29,5 +30,6 @@ data class Image(
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @OneToOne(mappedBy = "image")
+    @JsonIgnore
     var clothingItem: ClothingItem? = null
 ) 
