@@ -1,129 +1,352 @@
-<!-- OutfitCreator.vue - Drag & Drop Outfit Builder -->
+<!-- EnhancedOutfitCreator.vue - With Full Wardrobe Browser & Visual Outfit Preview -->
 <template>
-  <div class="outfit-creator">
-    <div class="creator-header">
-      <h2 class="page-title">Create Your Perfect Look ✨</h2>
-      <div class="header-controls">
+  <div class="w-full min-h-[calc(100vh-5rem)] px-8 py-8">
+    <div class="creator-header flex justify-between items-center mb-8 flex-wrap gap-4">
+      <h2 class="page-title text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+        Create Your Perfect Look ✨
+      </h2>
+      <div class="header-controls flex gap-4 items-center">
         <input
-          v-model="outfitName"
-          placeholder="Name your outfit..."
-          class="outfit-name-input" />
-        <button class="save-btn" @click="saveOutfit" :disabled="!canSave">
+            v-model="outfitName"
+            placeholder="Name your outfit..."
+            class="outfit-name-input px-6 py-3 rounded-full border border-gray-200 bg-white/60 text-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+        />
+        <button class="save-btn px-8 py-3 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-white font-semibold shadow-md hover:from-emerald-500 hover:to-cyan-500 transition disabled:opacity-50" @click="saveOutfit" :disabled="!canSave">
           💾 Save Outfit
         </button>
       </div>
     </div>
 
-    <div class="creator-layout">
-      <!-- Wardrobe Sidebar -->
-      <div class="wardrobe-sidebar">
-        <div class="sidebar-header">
-          <h3 class="sidebar-title">Your Wardrobe</h3>
-          <CategoryFilter 
-            :categories="categories"
-            :selected-category="selectedCategory"
-            @category-change="onCategoryChange" />
+    <!-- Quick Actions Bar -->
+    <div class="quick-actions-bar flex gap-4 mb-8 flex-wrap">
+      <button
+          @click="openWardrobeBrowser('top')"
+          class="action-card bg-gradient-to-br from-pink-100 to-purple-100 p-4 rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-400 transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">👚</span>
+          <div>
+            <h3 class="font-semibold text-gray-700">Browse Tops</h3>
+            <p class="text-sm text-gray-500">{{ getItemCount('top') }} items</p>
+          </div>
         </div>
-        
-        <div class="sidebar-items">
-          <ClothingCard
-            v-for="item in filteredItems"
-            :key="item.id"
-            :item="item"
-            class="sidebar-item"
-            @dragstart="onDragStart" />
-        </div>
-      </div>
+      </button>
 
+      <button
+          @click="openWardrobeBrowser('bottom')"
+          class="action-card bg-gradient-to-br from-blue-100 to-indigo-100 p-4 rounded-2xl border-2 border-dashed border-blue-300 hover:border-blue-400 transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">👖</span>
+          <div>
+            <h3 class="font-semibold text-gray-700">Browse Bottoms</h3>
+            <p class="text-sm text-gray-500">{{ getItemCount('bottom') }} items</p>
+          </div>
+        </div>
+      </button>
+
+      <button
+          @click="openWardrobeBrowser('shoes')"
+          class="action-card bg-gradient-to-br from-red-100 to-pink-100 p-4 rounded-2xl border-2 border-dashed border-red-300 hover:border-red-400 transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">👠</span>
+          <div>
+            <h3 class="font-semibold text-gray-700">Browse Shoes</h3>
+            <p class="text-sm text-gray-500">{{ getItemCount('shoes') }} items</p>
+          </div>
+        </div>
+      </button>
+
+      <button
+          @click="openWardrobeBrowser('accessory')"
+          class="action-card bg-gradient-to-br from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-dashed border-yellow-300 hover:border-yellow-400 transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">💍</span>
+          <div>
+            <h3 class="font-semibold text-gray-700">Browse Accessories</h3>
+            <p class="text-sm text-gray-500">{{ getItemCount('accessory') }} items</p>
+          </div>
+        </div>
+      </button>
+
+      <button
+          @click="openWardrobeBrowser('all')"
+          class="action-card bg-gradient-to-br from-purple-100 to-pink-100 p-4 rounded-2xl border-2 border-dashed border-purple-300 hover:border-purple-400 transition-all cursor-pointer group"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">✨</span>
+          <div>
+            <h3 class="font-semibold text-gray-700">Browse All</h3>
+            <p class="text-sm text-gray-500">{{ wardrobeItems.length }} total items</p>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-[1fr_400px] gap-8">
       <!-- Outfit Canvas -->
-      <div class="outfit-canvas">
-        <div class="canvas-container">
-          <h3 class="canvas-title">Drag items here to create your outfit</h3>
-          
+      <div class="outfit-canvas bg-white/40 rounded-3xl border border-white/40 p-8 relative overflow-hidden">
+        <div class="canvas-container relative z-10">
+          <h3 class="canvas-title text-center text-2xl font-semibold text-gray-600 mb-8">
+            Drag items here or use browse buttons above
+          </h3>
+
           <!-- Drop Zones -->
-          <div class="drop-zones">
+          <div class="drop-zones grid grid-cols-2 gap-6 mb-8">
             <!-- Top Section -->
-            <div class="drop-zone top-zone"
-                 @drop="onDrop($event, 'top')"
-                 @dragover.prevent
-                 @dragenter.prevent
-                 :class="{ 'drag-over': dragOverZone === 'top' }"
-                 @dragenter="dragOverZone = 'top'"
-                 @dragleave="dragOverZone = null">
-              <div v-if="!outfitItems.top" class="drop-placeholder">
-                <span class="placeholder-icon">👚</span>
-                <span class="placeholder-text">Drop a top here</span>
+            <div
+                class="drop-zone top-zone col-span-2 min-h-[180px] border-4 border-dashed border-pink-200 rounded-2xl flex items-center justify-center bg-white/30 relative transition-all cursor-pointer group hover:border-pink-300 hover:bg-pink-50/50"
+                :class="{ 'border-pink-400 bg-pink-50': dragOverZone === 'top' }"
+                @drop="onDrop($event, 'top')"
+                @dragover.prevent
+                @dragenter.prevent
+                @dragenter="dragOverZone = 'top'"
+                @dragleave="dragOverZone = null"
+                @click="openWardrobeBrowser('top')"
+            >
+              <div v-if="!outfitItems.top" class="drop-placeholder text-center text-gray-400 group-hover:text-pink-400 transition-colors">
+                <span class="placeholder-icon block text-4xl mb-2 opacity-70">👚</span>
+                <span class="placeholder-text text-lg font-medium">Click to add a top</span>
               </div>
-              <div v-else class="outfit-item-container">
-                <img :src="outfitItems.top.imageUrl" :alt="outfitItems.top.name" class="outfit-item-image">
-                <button class="remove-item-btn" @click="removeItem('top')">✕</button>
+              <div v-else class="outfit-item-container flex items-center justify-center w-full h-full relative">
+                <img :src="outfitItems.top.imageUrl" :alt="outfitItems.top.name" class="outfit-item-image max-w-[120px] max-h-[150px] object-contain rounded-xl shadow-lg" />
+                <div class="item-label absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{{ outfitItems.top.name }}</div>
+                <button class="remove-item-btn absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm hover:bg-red-600 transition" @click.stop="removeItem('top')">✕</button>
               </div>
             </div>
 
             <!-- Bottom Section -->
-            <div class="drop-zone bottom-zone"
-                 @drop="onDrop($event, 'bottom')"
-                 @dragover.prevent
-                 @dragenter.prevent
-                 :class="{ 'drag-over': dragOverZone === 'bottom' }"
-                 @dragenter="dragOverZone = 'bottom'"
-                 @dragleave="dragOverZone = null">
-              <div v-if="!outfitItems.bottom" class="drop-placeholder">
-                <span class="placeholder-icon">👖</span>
-                <span class="placeholder-text">Drop bottoms here</span>
+            <div
+                class="drop-zone bottom-zone col-span-2 min-h-[180px] border-4 border-dashed border-blue-200 rounded-2xl flex items-center justify-center bg-white/30 relative transition-all cursor-pointer group hover:border-blue-300 hover:bg-blue-50/50"
+                :class="{ 'border-blue-400 bg-blue-50': dragOverZone === 'bottom' }"
+                @drop="onDrop($event, 'bottom')"
+                @dragover.prevent
+                @dragenter.prevent
+                @dragenter="dragOverZone = 'bottom'"
+                @dragleave="dragOverZone = null"
+                @click="openWardrobeBrowser('bottom')"
+            >
+              <div v-if="!outfitItems.bottom" class="drop-placeholder text-center text-gray-400 group-hover:text-blue-400 transition-colors">
+                <span class="placeholder-icon block text-4xl mb-2 opacity-70">👖</span>
+                <span class="placeholder-text text-lg font-medium">Click to add bottoms</span>
               </div>
-              <div v-else class="outfit-item-container">
-                <img :src="outfitItems.bottom.imageUrl" :alt="outfitItems.bottom.name" class="outfit-item-image">
-                <button class="remove-item-btn" @click="removeItem('bottom')">✕</button>
+              <div v-else class="outfit-item-container flex items-center justify-center w-full h-full relative">
+                <img :src="outfitItems.bottom.imageUrl" :alt="outfitItems.bottom.name" class="outfit-item-image max-w-[120px] max-h-[150px] object-contain rounded-xl shadow-lg" />
+                <div class="item-label absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{{ outfitItems.bottom.name }}</div>
+                <button class="remove-item-btn absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm hover:bg-red-600 transition" @click.stop="removeItem('bottom')">✕</button>
               </div>
             </div>
 
             <!-- Shoes Section -->
-            <div class="drop-zone shoes-zone"
-                 @drop="onDrop($event, 'shoes')"
-                 @dragover.prevent
-                 @dragenter.prevent
-                 :class="{ 'drag-over': dragOverZone === 'shoes' }"
-                 @dragenter="dragOverZone = 'shoes'"
-                 @dragleave="dragOverZone = null">
-              <div v-if="!outfitItems.shoes" class="drop-placeholder">
-                <span class="placeholder-icon">👠</span>
-                <span class="placeholder-text">Drop shoes here</span>
+            <div
+                class="drop-zone shoes-zone min-h-[160px] border-4 border-dashed border-red-200 rounded-2xl flex items-center justify-center bg-white/30 relative transition-all cursor-pointer group hover:border-red-300 hover:bg-red-50/50"
+                :class="{ 'border-red-400 bg-red-50': dragOverZone === 'shoes' }"
+                @drop="onDrop($event, 'shoes')"
+                @dragover.prevent
+                @dragenter.prevent
+                @dragenter="dragOverZone = 'shoes'"
+                @dragleave="dragOverZone = null"
+                @click="openWardrobeBrowser('shoes')"
+            >
+              <div v-if="!outfitItems.shoes" class="drop-placeholder text-center text-gray-400 group-hover:text-red-400 transition-colors">
+                <span class="placeholder-icon block text-3xl mb-2 opacity-70">👠</span>
+                <span class="placeholder-text text-sm font-medium">Click for shoes</span>
               </div>
-              <div v-else class="outfit-item-container">
-                <img :src="outfitItems.shoes.imageUrl" :alt="outfitItems.shoes.name" class="outfit-item-image">
-                <button class="remove-item-btn" @click="removeItem('shoes')">✕</button>
+              <div v-else class="outfit-item-container flex items-center justify-center w-full h-full relative">
+                <img :src="outfitItems.shoes.imageUrl" :alt="outfitItems.shoes.name" class="outfit-item-image max-w-[100px] max-h-[120px] object-contain rounded-xl shadow-lg" />
+                <div class="item-label absolute bottom-1 left-1 bg-black/70 text-white px-2 py-1 rounded text-xs">{{ outfitItems.shoes.name }}</div>
+                <button class="remove-item-btn absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs hover:bg-red-600 transition" @click.stop="removeItem('shoes')">✕</button>
               </div>
             </div>
 
             <!-- Accessories Section -->
-            <div class="drop-zone accessories-zone"
-                 @drop="onDrop($event, 'accessory')"
-                 @dragover.prevent
-                 @dragenter.prevent
-                 :class="{ 'drag-over': dragOverZone === 'accessory' }"
-                 @dragenter="dragOverZone = 'accessory'"
-                 @dragleave="dragOverZone = null">
-              <div v-if="outfitItems.accessories.length === 0" class="drop-placeholder">
-                <span class="placeholder-icon">💍</span>
-                <span class="placeholder-text">Drop accessories here</span>
+            <div
+                class="drop-zone accessories-zone min-h-[160px] border-4 border-dashed border-yellow-200 rounded-2xl flex items-center justify-center bg-white/30 relative transition-all cursor-pointer group hover:border-yellow-300 hover:bg-yellow-50/50"
+                :class="{ 'border-yellow-400 bg-yellow-50': dragOverZone === 'accessory' }"
+                @drop="onDrop($event, 'accessory')"
+                @dragover.prevent
+                @dragenter.prevent
+                @dragenter="dragOverZone = 'accessory'"
+                @dragleave="dragOverZone = null"
+                @click="openWardrobeBrowser('accessory')"
+            >
+              <div v-if="outfitItems.accessories.length === 0" class="drop-placeholder text-center text-gray-400 group-hover:text-yellow-500 transition-colors">
+                <span class="placeholder-icon block text-3xl mb-2 opacity-70">💍</span>
+                <span class="placeholder-text text-sm font-medium">Click for accessories</span>
               </div>
-              <div v-else class="accessories-container">
-                <div v-for="accessory in outfitItems.accessories" :key="accessory.id" class="accessory-item">
-                  <img :src="accessory.imageUrl" :alt="accessory.name" class="accessory-image">
-                  <button class="remove-accessory-btn" @click="removeAccessory(accessory.id)">✕</button>
+              <div v-else class="accessories-container flex flex-wrap gap-2 w-full justify-center items-center p-2">
+                <div v-for="accessory in outfitItems.accessories" :key="accessory.id" class="accessory-item relative">
+                  <img :src="accessory.imageUrl" :alt="accessory.name" class="accessory-image w-12 h-12 object-cover rounded-lg shadow-md" />
+                  <button class="remove-accessory-btn absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs hover:bg-red-600 transition" @click.stop="removeAccessory(accessory.id)">✕</button>
+                </div>
+                <button
+                    @click.stop="openWardrobeBrowser('accessory')"
+                    class="add-more-accessory w-12 h-12 border-2 border-dashed border-yellow-400 rounded-lg flex items-center justify-center text-yellow-500 hover:border-yellow-500 hover:text-yellow-600 transition-colors"
+                >
+                  <span class="text-lg">+</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Outfit Preview -->
+      <div class="outfit-preview-panel">
+        <div class="preview-card bg-white/60 rounded-3xl border border-white/40 p-6">
+          <h3 class="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
+            Outfit Preview
+          </h3>
+
+          <div v-if="!hasItems" class="empty-preview text-center py-12">
+            <span class="text-6xl opacity-50 block mb-4">👗</span>
+            <p class="text-gray-500">Start adding items to see your outfit come together!</p>
+          </div>
+
+          <div v-else class="outfit-visualization">
+            <!-- Mannequin-style Preview -->
+            <div class="mannequin-container bg-gradient-to-b from-gray-100 to-gray-200 rounded-2xl p-6 mb-6 relative min-h-[300px]">
+              <!-- Body outline -->
+              <div class="body-outline absolute inset-6 border-2 border-dashed border-gray-300 rounded-full opacity-30"></div>
+
+              <!-- Top -->
+              <div v-if="outfitItems.top" class="preview-top absolute top-4 left-1/2 transform -translate-x-1/2">
+                <img :src="outfitItems.top.imageUrl" :alt="outfitItems.top.name" class="w-20 h-24 object-contain opacity-90" />
+              </div>
+
+              <!-- Bottom -->
+              <div v-if="outfitItems.bottom" class="preview-bottom absolute top-20 left-1/2 transform -translate-x-1/2">
+                <img :src="outfitItems.bottom.imageUrl" :alt="outfitItems.bottom.name" class="w-20 h-24 object-contain opacity-90" />
+              </div>
+
+              <!-- Shoes -->
+              <div v-if="outfitItems.shoes" class="preview-shoes absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <img :src="outfitItems.shoes.imageUrl" :alt="outfitItems.shoes.name" class="w-16 h-16 object-contain opacity-90" />
+              </div>
+
+              <!-- Accessories floating around -->
+              <div v-for="(accessory, index) in outfitItems.accessories" :key="accessory.id"
+                   :class="[
+                     'preview-accessory absolute',
+                     index === 0 ? 'top-2 right-2' : '',
+                     index === 1 ? 'top-2 left-2' : '',
+                     index === 2 ? 'bottom-2 right-2' : '',
+                     index >= 3 ? 'bottom-2 left-2' : ''
+                   ]">
+                <img :src="accessory.imageUrl" :alt="accessory.name" class="w-8 h-8 object-contain opacity-80" />
+              </div>
+            </div>
+
+            <!-- Outfit Stats -->
+            <div class="outfit-stats space-y-4">
+              <div class="stat-item bg-white/40 rounded-xl p-4">
+                <h4 class="font-semibold text-gray-700 mb-2">Style Analysis</h4>
+                <div class="flex gap-2">
+                  <span class="stat-tag px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-full text-sm font-medium">
+                    {{ getOutfitStyle() }}
+                  </span>
+                  <span class="stat-tag px-3 py-1 bg-gradient-to-r from-blue-400 to-purple-400 text-white rounded-full text-sm font-medium">
+                    {{ getSeasonMix() }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="stat-item bg-white/40 rounded-xl p-4">
+                <h4 class="font-semibold text-gray-700 mb-2">Outfit Components</h4>
+                <div class="space-y-2 text-sm">
+                  <div v-if="outfitItems.top" class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-pink-400 rounded-full"></span>
+                    <span>{{ outfitItems.top.name }} ({{ outfitItems.top.brand }})</span>
+                  </div>
+                  <div v-if="outfitItems.bottom" class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span>{{ outfitItems.bottom.name }} ({{ outfitItems.bottom.brand }})</span>
+                  </div>
+                  <div v-if="outfitItems.shoes" class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+                    <span>{{ outfitItems.shoes.name }} ({{ outfitItems.shoes.brand }})</span>
+                  </div>
+                  <div v-for="accessory in outfitItems.accessories" :key="accessory.id" class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    <span>{{ accessory.name }} ({{ accessory.brand }})</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-item bg-white/40 rounded-xl p-4">
+                <h4 class="font-semibold text-gray-700 mb-2">Perfect For</h4>
+                <div class="flex flex-wrap gap-2">
+                  <span v-for="event in getOutfitEvents()" :key="event"
+                        class="event-tag px-2 py-1 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-lg text-xs font-medium">
+                    {{ event }}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- Outfit Preview -->
-          <div v-if="hasItems" class="outfit-preview">
-            <h4 class="preview-title">Outfit Preview</h4>
-            <div class="preview-tags">
-              <span class="preview-tag">{{ getOutfitStyle() }}</span>
-              <span class="preview-tag">{{ getSeasonMix() }}</span>
+    <!-- Enhanced Wardrobe Browser Modal -->
+    <div v-if="showWardrobeBrowser" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" @click="closeWardrobeBrowser">
+      <div class="bg-white/95 backdrop-blur-md rounded-3xl max-w-7xl max-h-[85vh] overflow-hidden w-[90vw]" @click.stop>
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              {{ getBrowserTitle() }}
+            </h3>
+            <button @click="closeWardrobeBrowser" class="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition">
+              ✕
+            </button>
+          </div>
+
+          <!-- Enhanced Filters -->
+          <div class="flex gap-4 items-center flex-wrap">
+            <div class="search-container">
+              <input
+                  v-model="searchQuery"
+                  placeholder="Search items..."
+                  class="px-4 py-2 border border-gray-300 rounded-xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
             </div>
+
+            <div class="filter-container flex gap-2">
+              <select v-model="filterBrand" class="px-3 py-2 border border-gray-300 rounded-xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                <option value="">All Brands</option>
+                <option v-for="brand in availableBrands" :key="brand" :value="brand">{{ brand }}</option>
+              </select>
+
+              <select v-model="filterSeason" class="px-3 py-2 border border-gray-300 rounded-xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                <option value="">All Seasons</option>
+                <option value="spring">Spring</option>
+                <option value="summer">Summer</option>
+                <option value="fall">Fall</option>
+                <option value="winter">Winter</option>
+                <option value="all_season">All Season</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 max-h-[calc(85vh-200px)] overflow-y-auto">
+          <div class="grid grid-cols-6 gap-4">
+            <div
+                v-for="item in filteredBrowserItems"
+                :key="item.id"
+                class="cursor-pointer transform hover:scale-105 transition-transform"
+                @click="selectItemFromBrowser(item)"
+            >
+              <ClothingCard :item="item" :draggable="false" />
+            </div>
+          </div>
+
+          <div v-if="filteredBrowserItems.length === 0" class="text-center py-12">
+            <span class="text-4xl opacity-50 block mb-2">🔍</span>
+            <p class="text-gray-500">No items found matching your criteria</p>
           </div>
         </div>
       </div>
@@ -134,20 +357,33 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ClothingCard from '../components/ClothingCard.vue'
-import CategoryFilter from '../components/CategoryFilter.vue'
 
-// Sample data - replace with actual API calls
+// Enhanced sample data
 const wardrobeItems = ref([
   { id: 1, name: 'Pink Blouse', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Zara', season: 'spring', eventTypes: ['casual', 'date'] },
   { id: 2, name: 'Denim Jacket', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Levi\'s', season: 'fall', eventTypes: ['casual'] },
-  { id: 3, name: 'Black Jeans', imageUrl: '/api/placeholder/200/300', category: 'bottom', brand: 'H&M', season: 'all_season', eventTypes: ['casual', 'night_out'] },
-  { id: 4, name: 'White Sneakers', imageUrl: '/api/placeholder/200/200', category: 'shoes', brand: 'Nike', season: 'all_season', eventTypes: ['casual', 'school'] },
-  { id: 5, name: 'Gold Necklace', imageUrl: '/api/placeholder/150/150', category: 'accessory', brand: 'Pandora', season: 'all_season', eventTypes: ['date', 'formal'] }
+  { id: 3, name: 'White Tee', imageUrl: '/api/placeholder/200/220', category: 'top', brand: 'H&M', season: 'summer', eventTypes: ['casual'] },
+  { id: 4, name: 'Silk Blouse', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Zara', season: 'all_season', eventTypes: ['formal', 'work'] },
+  { id: 5, name: 'Black Jeans', imageUrl: '/api/placeholder/200/300', category: 'bottom', brand: 'H&M', season: 'all_season', eventTypes: ['casual', 'night_out'] },
+  { id: 6, name: 'Dress Pants', imageUrl: '/api/placeholder/200/300', category: 'bottom', brand: 'Zara', season: 'all_season', eventTypes: ['formal', 'work'] },
+  { id: 7, name: 'Summer Skirt', imageUrl: '/api/placeholder/200/250', category: 'bottom', brand: 'H&M', season: 'summer', eventTypes: ['casual', 'date'] },
+  { id: 8, name: 'White Sneakers', imageUrl: '/api/placeholder/200/200', category: 'shoes', brand: 'Nike', season: 'all_season', eventTypes: ['casual', 'school'] },
+  { id: 9, name: 'High Heels', imageUrl: '/api/placeholder/200/200', category: 'shoes', brand: 'Louboutin', season: 'all_season', eventTypes: ['formal', 'date'] },
+  { id: 10, name: 'Boots', imageUrl: '/api/placeholder/200/220', category: 'shoes', brand: 'Dr. Martens', season: 'winter', eventTypes: ['casual'] },
+  { id: 11, name: 'Gold Necklace', imageUrl: '/api/placeholder/150/150', category: 'accessory', brand: 'Pandora', season: 'all_season', eventTypes: ['date', 'formal'] },
+  { id: 12, name: 'Silver Bracelet', imageUrl: '/api/placeholder/150/150', category: 'accessory', brand: 'Tiffany', season: 'all_season', eventTypes: ['casual', 'date'] },
+  { id: 13, name: 'Designer Bag', imageUrl: '/api/placeholder/180/180', category: 'accessory', brand: 'Gucci', season: 'all_season', eventTypes: ['formal', 'work'] },
+  { id: 14, name: 'Sunglasses', imageUrl: '/api/placeholder/160/120', category: 'accessory', brand: 'Ray-Ban', season: 'summer', eventTypes: ['casual'] },
+  { id: 15, name: 'Watch', imageUrl: '/api/placeholder/140/140', category: 'accessory', brand: 'Apple', season: 'all_season', eventTypes: ['casual', 'work'] }
 ])
 
 const outfitName = ref('')
-const selectedCategory = ref('all')
 const dragOverZone = ref(null)
+const showWardrobeBrowser = ref(false)
+const browserCategory = ref('')
+const searchQuery = ref('')
+const filterBrand = ref('')
+const filterSeason = ref('')
 
 const outfitItems = ref({
   top: null,
@@ -156,53 +392,101 @@ const outfitItems = ref({
   accessories: []
 })
 
-const categories = ref([
-  { value: 'all', label: '✨ All', count: 5 },
-  { value: 'top', label: '👚 Tops', count: 2 },
-  { value: 'bottom', label: '👖 Bottoms', count: 1 },
-  { value: 'shoes', label: '👠 Shoes', count: 1 },
-  { value: 'accessory', label: '💍 Accessories', count: 1 }
-])
-
-const filteredItems = computed(() => {
-  if (selectedCategory.value === 'all') {
-    return wardrobeItems.value
-  }
-  return wardrobeItems.value.filter(item => 
-    item.category === selectedCategory.value
-  )
-})
-
+// Computed properties
 const hasItems = computed(() => {
-  return outfitItems.value.top || outfitItems.value.bottom || 
-         outfitItems.value.shoes || outfitItems.value.accessories.length > 0
+  return outfitItems.value.top || outfitItems.value.bottom ||
+      outfitItems.value.shoes || outfitItems.value.accessories.length > 0
 })
 
 const canSave = computed(() => {
   return outfitName.value.trim() && hasItems.value
 })
 
-const onCategoryChange = (category) => {
-  selectedCategory.value = category
+const availableBrands = computed(() => {
+  return [...new Set(wardrobeItems.value.map(item => item.brand))].sort()
+})
+
+const filteredBrowserItems = computed(() => {
+  let items = wardrobeItems.value
+
+  if (browserCategory.value !== 'all') {
+    items = items.filter(item => item.category === browserCategory.value)
+  }
+
+  if (searchQuery.value) {
+    items = items.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        item.brand.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  }
+
+  if (filterBrand.value) {
+    items = items.filter(item => item.brand === filterBrand.value)
+  }
+
+  if (filterSeason.value) {
+    items = items.filter(item => item.season === filterSeason.value)
+  }
+
+  return items
+})
+
+// Methods
+const getItemCount = (category) => {
+  return wardrobeItems.value.filter(item => item.category === category).length
 }
 
-const onDragStart = (item) => {
-  // Handled by ClothingCard component
+const openWardrobeBrowser = (category) => {
+  browserCategory.value = category
+  showWardrobeBrowser.value = true
+  searchQuery.value = ''
+  filterBrand.value = ''
+  filterSeason.value = ''
+}
+
+const closeWardrobeBrowser = () => {
+  showWardrobeBrowser.value = false
+  browserCategory.value = ''
+}
+
+const getBrowserTitle = () => {
+  const titles = {
+    all: 'Browse All Items',
+    top: 'Browse Tops',
+    bottom: 'Browse Bottoms',
+    shoes: 'Browse Shoes',
+    accessory: 'Browse Accessories'
+  }
+  return titles[browserCategory.value] || 'Browse Wardrobe'
+}
+
+const selectItemFromBrowser = (item) => {
+  if (item.category === 'accessory') {
+    if (!outfitItems.value.accessories.find(acc => acc.id === item.id)) {
+      outfitItems.value.accessories.push(item)
+    }
+  } else {
+    outfitItems.value[item.category] = item
+  }
+
+  if (item.category !== 'accessory') {
+    closeWardrobeBrowser()
+  }
 }
 
 const onDrop = (event, zone) => {
   event.preventDefault()
   dragOverZone.value = null
-  
+
   try {
     const item = JSON.parse(event.dataTransfer.getData('text/plain'))
-    
+
     if (zone === 'accessory') {
       if (item.category === 'accessory' && !outfitItems.value.accessories.find(acc => acc.id === item.id)) {
         outfitItems.value.accessories.push(item)
       }
     } else {
-      if (item.category === zone || (zone === 'bottom' && item.category === 'bottom')) {
+      if (item.category === zone) {
         outfitItems.value[zone] = item
       }
     }
@@ -217,7 +501,7 @@ const removeItem = (zone) => {
 
 const removeAccessory = (accessoryId) => {
   outfitItems.value.accessories = outfitItems.value.accessories.filter(
-    acc => acc.id !== accessoryId
+      acc => acc.id !== accessoryId
   )
 }
 
@@ -228,17 +512,19 @@ const getOutfitStyle = () => {
     outfitItems.value.shoes,
     ...outfitItems.value.accessories
   ].filter(Boolean)
-  
+
+  if (items.length === 0) return 'Empty'
+
   const eventTypes = items.flatMap(item => item.eventTypes || [])
   const mostCommon = eventTypes.reduce((acc, type) => {
     acc[type] = (acc[type] || 0) + 1
     return acc
   }, {})
-  
-  const dominantStyle = Object.keys(mostCommon).reduce((a, b) => 
-    mostCommon[a] > mostCommon[b] ? a : b, 'casual'
+
+  const dominantStyle = Object.keys(mostCommon).reduce((a, b) =>
+      mostCommon[a] > mostCommon[b] ? a : b, 'casual'
   )
-  
+
   return dominantStyle.charAt(0).toUpperCase() + dominantStyle.slice(1)
 }
 
@@ -249,19 +535,45 @@ const getSeasonMix = () => {
     outfitItems.value.shoes,
     ...outfitItems.value.accessories
   ].filter(Boolean)
-  
+
+  if (items.length === 0) return 'No Season'
+
   const seasons = [...new Set(items.map(item => item.season).filter(Boolean))]
-  
+
   if (seasons.includes('all_season') || seasons.length > 1) {
     return 'Versatile'
   }
-  
+
   return seasons[0] ? seasons[0].charAt(0).toUpperCase() + seasons[0].slice(1) : 'Mixed'
+}
+
+const getOutfitEvents = () => {
+  const items = [
+    outfitItems.value.top,
+    outfitItems.value.bottom,
+    outfitItems.value.shoes,
+    ...outfitItems.value.accessories
+  ].filter(Boolean)
+
+  if (items.length === 0) return []
+
+  const allEvents = items.flatMap(item => item.eventTypes || [])
+  const eventCounts = allEvents.reduce((acc, event) => {
+    acc[event] = (acc[event] || 0) + 1
+    return acc
+  }, {})
+
+  // Return events that appear in at least half the items
+  const threshold = Math.ceil(items.length / 2)
+  return Object.entries(eventCounts)
+      .filter(([event, count]) => count >= threshold)
+      .map(([event]) => event.charAt(0).toUpperCase() + event.slice(1))
+      .slice(0, 4) // Limit to 4 events
 }
 
 const saveOutfit = () => {
   if (!canSave.value) return
-  
+
   const outfit = {
     name: outfitName.value,
     items: {
@@ -271,12 +583,13 @@ const saveOutfit = () => {
       accessories: outfitItems.value.accessories.map(acc => acc.id)
     },
     style: getOutfitStyle(),
-    season: getSeasonMix()
+    season: getSeasonMix(),
+    events: getOutfitEvents()
   }
-  
+
   console.log('Saving outfit:', outfit)
   // Here you would call your API to save the outfit
-  
+
   // Reset form
   outfitName.value = ''
   outfitItems.value = {
@@ -285,349 +598,79 @@ const saveOutfit = () => {
     shoes: null,
     accessories: []
   }
-  
+
   // Show success message
   alert('✨ Outfit saved successfully!')
 }
 </script>
 
 <style scoped>
-.outfit-creator {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 2rem;
-  min-height: calc(100vh - 100px);
+/* Custom scrollbar for modal */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 72, 153, 0.3) transparent;
 }
 
-.creator-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
 }
 
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6, #06b6d4);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.header-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(236, 72, 153, 0.3);
+  border-radius: 4px;
 }
 
-.outfit-name-input {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  font-size: 1rem;
-  color: #374151;
-  placeholder-color: #9ca3af;
-  outline: none;
-  transition: all 0.3s ease;
-  min-width: 200px;
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.5);
 }
 
-.outfit-name-input:focus {
-  background: rgba(255, 255, 255, 0.4);
-  border-color: #ec4899;
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
-}
-
-.save-btn {
-  padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #10b981, #06b6d4);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-}
-
-.save-btn:hover:not(:disabled) {
+/* Action cards hover effects */
+.action-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-.save-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+/* Mannequin animation */
+.mannequin-container {
+  position: relative;
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
 }
 
-.creator-layout {
-  display: grid;
-  grid-template-columns: 400px 1fr;
-  gap: 2rem;
-  height: calc(100vh - 200px);
+.preview-top, .preview-bottom, .preview-shoes, .preview-accessory {
+  transition: all 0.3s ease;
 }
 
+.preview-accessory {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Grid responsive */
 @media (max-width: 1200px) {
-  .creator-layout {
-    grid-template-columns: 1fr;
-    height: auto;
+  .grid-cols-6 {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-.wardrobe-sidebar {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(20px);
-  border-radius: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 1.5rem;
-  height: fit-content;
-  max-height: 100%;
-  overflow: hidden;
-}
+@media (max-width: 768px) {
+  .grid-cols-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
-.sidebar-header {
-  margin-bottom: 1.5rem;
-}
+  .grid-cols-\[1fr_400px\] {
+    grid-template-columns: 1fr;
+  }
 
-.sidebar-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #6b46c1, #ec4899);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-items {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  max-height: calc(100vh - 400px);
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.sidebar-item {
-  transform: scale(0.9);
-}
-
-.outfit-canvas {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(30px);
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.outfit-canvas::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.canvas-container {
-  position: relative;
-  z-index: 1;
-}
-
-.canvas-title {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 2rem;
-}
-
-.drop-zones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.top-zone {
-  grid-column: 1 / -1;
-}
-
-.bottom-zone {
-  grid-column: 1 / -1;
-}
-
-.shoes-zone {
-  grid-column: 1;
-}
-
-.accessories-zone {
-  grid-column: 2;
-}
-
-.drop-zone {
-  min-height: 200px;
-  border: 3px dashed rgba(236, 72, 153, 0.3);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.1);
-  position: relative;
-}
-
-.drop-zone.drag-over {
-  border-color: #ec4899;
-  background: rgba(236, 72, 153, 0.1);
-  transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
-}
-
-.drop-placeholder {
-  text-align: center;
-  color: #9ca3af;
-}
-
-.placeholder-icon {
-  display: block;
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.7;
-}
-
-.placeholder-text {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.outfit-item-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.outfit-item-image {
-  max-width: 150px;
-  max-height: 180px;
-  object-fit: contain;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.remove-item-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.9);
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-}
-
-.remove-item-btn:hover {
-  background: #dc2626;
-  transform: scale(1.1);
-}
-
-.accessories-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-}
-
-.accessory-item {
-  position: relative;
-}
-
-.accessory-image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.remove-accessory-btn {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ef4444;
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-}
-
-.outfit-preview {
-  text-align: center;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-.preview-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.preview-tags {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.preview-tag {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #a78bfa, #ec4899);
-  color: white;
-  border-radius: 20px;
-  font-weight: 500;
-  font-size: 0.875rem;
+  .quick-actions-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>
