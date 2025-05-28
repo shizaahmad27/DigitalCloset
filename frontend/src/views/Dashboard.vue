@@ -1,6 +1,6 @@
 <!-- Dashboard.vue - Main Dashboard with Weather Recommendations -->
 <template>
-  <div class="dashboard">
+  <div class="max-w-[1650px] mx-auto px-4 py-8">
     <!-- Welcome Section -->
     <div class="welcome-section">
       <div class="welcome-content">
