@@ -115,7 +115,7 @@
                   :key="eventType"
                   class="tag"
               >
-                #{{ eventType }}
+                #{{ formatEventType(eventType) }}
                 <button
                     class="remove-tag"
                     @click="removeEventType(eventType)"
@@ -374,7 +374,7 @@ const handleUploadError = (error) => {
 
 const addEventType = () => {
   if (selectedEventType.value && !newItem.value.eventTypes.includes(selectedEventType.value)) {
-    newItem.value.eventTypes.push(selectedEventType.value)
+    newItem.value.eventTypes.push(selectedEventType.value.toUpperCase())
   }
   selectedEventType.value = ''
 }
@@ -472,6 +472,21 @@ const getSeasonEmoji = (season) => {
 
 const formatSeason = (season) => {
   return season.charAt(0).toUpperCase() + season.slice(1)
+}
+
+const formatEventType = (eventType) => {
+  const formatMap = {
+    'DAY': 'Day',
+    'NIGHT': 'Night',
+    'DATE': 'Date',
+    'CASUAL': 'Casual',
+    'BEACH': 'Beach',
+    'SCHOOL': 'School',
+    'FORMAL': 'Formal',
+    'SPORTS': 'Sports',
+    'WORK': 'Work'
+  }
+  return formatMap[eventType] || eventType
 }
 
 // Load initial data

@@ -6,7 +6,7 @@
        @click="$emit('click', item)">
     <!-- Main image container -->
     <div class="card-image-container">
-      <img :src="item.imageUrl" 
+      <img :src="getImageUrl(item.imageUrl)" 
            :alt="item.name" 
            class="card-image"
            @load="onImageLoad">
@@ -46,6 +46,8 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
 const props = defineProps({
   item: {
     type: Object,
@@ -58,6 +60,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['click', 'favorite', 'edit', 'delete', 'dragstart'])
+
+const getImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `${API_URL}${url}`
+}
 
 const onDragStart = (event) => {
   event.dataTransfer.setData('text/plain', JSON.stringify(props.item))

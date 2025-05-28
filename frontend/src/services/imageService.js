@@ -12,7 +12,7 @@ export const uploadImage = async (file) => {
         'Content-Type': 'multipart/form-data'
       }
     })
-    return response.data.url
+    return `${API_URL}${response.data.url}`
   } catch (error) {
     if (error.response?.data?.error) {
       throw new Error(error.response.data.error)
