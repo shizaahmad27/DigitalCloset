@@ -20,53 +20,53 @@
     <!-- Quick Actions Bar -->
     <div class="quick-actions-bar flex gap-4 mb-8 flex-wrap">
       <button
-          @click="openWardrobeBrowser('top')"
+          @click="openWardrobeBrowser('TOP')"
           class="action-card bg-gradient-to-br from-pink-100 to-purple-100 p-4 rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-400 transition-all cursor-pointer group"
       >
         <div class="flex items-center gap-3">
           <span class="text-3xl">👚</span>
           <div>
             <h3 class="font-semibold text-gray-700">Browse Tops</h3>
-            <p class="text-sm text-gray-500">{{ getItemCount('top') }} items</p>
+            <p class="text-sm text-gray-500">{{ getItemCount('TOP') }} items</p>
           </div>
         </div>
       </button>
 
       <button
-          @click="openWardrobeBrowser('bottom')"
+          @click="openWardrobeBrowser('BOTTOM')"
           class="action-card bg-gradient-to-br from-blue-100 to-indigo-100 p-4 rounded-2xl border-2 border-dashed border-blue-300 hover:border-blue-400 transition-all cursor-pointer group"
       >
         <div class="flex items-center gap-3">
           <span class="text-3xl">👖</span>
           <div>
             <h3 class="font-semibold text-gray-700">Browse Bottoms</h3>
-            <p class="text-sm text-gray-500">{{ getItemCount('bottom') }} items</p>
+            <p class="text-sm text-gray-500">{{ getItemCount('BOTTOM') }} items</p>
           </div>
         </div>
       </button>
 
       <button
-          @click="openWardrobeBrowser('shoes')"
+          @click="openWardrobeBrowser('SHOES')"
           class="action-card bg-gradient-to-br from-red-100 to-pink-100 p-4 rounded-2xl border-2 border-dashed border-red-300 hover:border-red-400 transition-all cursor-pointer group"
       >
         <div class="flex items-center gap-3">
           <span class="text-3xl">👠</span>
           <div>
             <h3 class="font-semibold text-gray-700">Browse Shoes</h3>
-            <p class="text-sm text-gray-500">{{ getItemCount('shoes') }} items</p>
+            <p class="text-sm text-gray-500">{{ getItemCount('SHOES') }} items</p>
           </div>
         </div>
       </button>
 
       <button
-          @click="openWardrobeBrowser('accessory')"
+          @click="openWardrobeBrowser('ACCESSORY')"
           class="action-card bg-gradient-to-br from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-dashed border-yellow-300 hover:border-yellow-400 transition-all cursor-pointer group"
       >
         <div class="flex items-center gap-3">
           <span class="text-3xl">💍</span>
           <div>
             <h3 class="font-semibold text-gray-700">Browse Accessories</h3>
-            <p class="text-sm text-gray-500">{{ getItemCount('accessory') }} items</p>
+            <p class="text-sm text-gray-500">{{ getItemCount('ACCESSORY') }} items</p>
           </div>
         </div>
       </button>
@@ -105,7 +105,7 @@
                 @dragenter.prevent
                 @dragenter="dragOverZone = 'top'"
                 @dragleave="dragOverZone = null"
-                @click="openWardrobeBrowser('top')"
+                @click="openWardrobeBrowser('TOP')"
             >
               <div v-if="!outfitItems.top" class="drop-placeholder text-center text-gray-400 group-hover:text-pink-400 transition-colors">
                 <span class="placeholder-icon block text-4xl mb-2 opacity-70">👚</span>
@@ -127,7 +127,7 @@
                 @dragenter.prevent
                 @dragenter="dragOverZone = 'bottom'"
                 @dragleave="dragOverZone = null"
-                @click="openWardrobeBrowser('bottom')"
+                @click="openWardrobeBrowser('BOTTOM')"
             >
               <div v-if="!outfitItems.bottom" class="drop-placeholder text-center text-gray-400 group-hover:text-blue-400 transition-colors">
                 <span class="placeholder-icon block text-4xl mb-2 opacity-70">👖</span>
@@ -149,7 +149,7 @@
                 @dragenter.prevent
                 @dragenter="dragOverZone = 'shoes'"
                 @dragleave="dragOverZone = null"
-                @click="openWardrobeBrowser('shoes')"
+                @click="openWardrobeBrowser('SHOES')"
             >
               <div v-if="!outfitItems.shoes" class="drop-placeholder text-center text-gray-400 group-hover:text-red-400 transition-colors">
                 <span class="placeholder-icon block text-3xl mb-2 opacity-70">👠</span>
@@ -171,7 +171,7 @@
                 @dragenter.prevent
                 @dragenter="dragOverZone = 'accessory'"
                 @dragleave="dragOverZone = null"
-                @click="openWardrobeBrowser('accessory')"
+                @click="openWardrobeBrowser('ACCESSORY')"
             >
               <div v-if="outfitItems.accessories.length === 0" class="drop-placeholder text-center text-gray-400 group-hover:text-yellow-500 transition-colors">
                 <span class="placeholder-icon block text-3xl mb-2 opacity-70">💍</span>
@@ -183,7 +183,7 @@
                   <button class="remove-accessory-btn absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs hover:bg-red-600 transition" @click.stop="removeAccessory(accessory.id)">✕</button>
                 </div>
                 <button
-                    @click.stop="openWardrobeBrowser('accessory')"
+                    @click.stop="openWardrobeBrowser('ACCESSORY')"
                     class="add-more-accessory w-12 h-12 border-2 border-dashed border-yellow-400 rounded-lg flex items-center justify-center text-yellow-500 hover:border-yellow-500 hover:text-yellow-600 transition-colors"
                 >
                   <span class="text-lg">+</span>
@@ -357,25 +357,19 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ClothingCard from '../components/ClothingCard.vue'
+import { useGetAll1 } from '../api/generated/clothing-items/clothing-items'
+import OutfitPreview from '../components/OutfitPreview.vue'
 
-// Enhanced sample data
-const wardrobeItems = ref([
-  { id: 1, name: 'Pink Blouse', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Zara', season: 'spring', eventTypes: ['casual', 'date'] },
-  { id: 2, name: 'Denim Jacket', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Levi\'s', season: 'fall', eventTypes: ['casual'] },
-  { id: 3, name: 'White Tee', imageUrl: '/api/placeholder/200/220', category: 'top', brand: 'H&M', season: 'summer', eventTypes: ['casual'] },
-  { id: 4, name: 'Silk Blouse', imageUrl: '/api/placeholder/200/250', category: 'top', brand: 'Zara', season: 'all_season', eventTypes: ['formal', 'work'] },
-  { id: 5, name: 'Black Jeans', imageUrl: '/api/placeholder/200/300', category: 'bottom', brand: 'H&M', season: 'all_season', eventTypes: ['casual', 'night_out'] },
-  { id: 6, name: 'Dress Pants', imageUrl: '/api/placeholder/200/300', category: 'bottom', brand: 'Zara', season: 'all_season', eventTypes: ['formal', 'work'] },
-  { id: 7, name: 'Summer Skirt', imageUrl: '/api/placeholder/200/250', category: 'bottom', brand: 'H&M', season: 'summer', eventTypes: ['casual', 'date'] },
-  { id: 8, name: 'White Sneakers', imageUrl: '/api/placeholder/200/200', category: 'shoes', brand: 'Nike', season: 'all_season', eventTypes: ['casual', 'school'] },
-  { id: 9, name: 'High Heels', imageUrl: '/api/placeholder/200/200', category: 'shoes', brand: 'Louboutin', season: 'all_season', eventTypes: ['formal', 'date'] },
-  { id: 10, name: 'Boots', imageUrl: '/api/placeholder/200/220', category: 'shoes', brand: 'Dr. Martens', season: 'winter', eventTypes: ['casual'] },
-  { id: 11, name: 'Gold Necklace', imageUrl: '/api/placeholder/150/150', category: 'accessory', brand: 'Pandora', season: 'all_season', eventTypes: ['date', 'formal'] },
-  { id: 12, name: 'Silver Bracelet', imageUrl: '/api/placeholder/150/150', category: 'accessory', brand: 'Tiffany', season: 'all_season', eventTypes: ['casual', 'date'] },
-  { id: 13, name: 'Designer Bag', imageUrl: '/api/placeholder/180/180', category: 'accessory', brand: 'Gucci', season: 'all_season', eventTypes: ['formal', 'work'] },
-  { id: 14, name: 'Sunglasses', imageUrl: '/api/placeholder/160/120', category: 'accessory', brand: 'Ray-Ban', season: 'summer', eventTypes: ['casual'] },
-  { id: 15, name: 'Watch', imageUrl: '/api/placeholder/140/140', category: 'accessory', brand: 'Apple', season: 'all_season', eventTypes: ['casual', 'work'] }
-])
+const page = ref(0)
+const size = ref(100)
+const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
+  page: page.value,
+  size: size.value,
+  sortBy: 'createdAt',
+  direction: 'DESC'
+})
+
+const wardrobeItems = computed(() => clothingItemsData.value?.content || [])
 
 const outfitName = ref('')
 const dragOverZone = ref(null)

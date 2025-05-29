@@ -10,17 +10,16 @@ export const uploadImage = async (file: File): Promise<string> => {
   const formData = new FormData()
   formData.append('file', file)
 
-  try {
-    const response = await axios.post<ImageUploadResponse>(`${API_URL}/api/images/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-    return `${API_URL}${response.data.url}`
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.data?.error) {
-      throw new Error(error.response.data.error)
-    }
-    throw new Error('Failed to upload image. Please try again.')
+  const response = await fetch(`${API_URL}/api/upload/image`, {
+    method: 'POST',
+    body: formData
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to upload image')
   }
+
+  const data = await response.json()
+  return `${API_URL}${data.url}`
 } 

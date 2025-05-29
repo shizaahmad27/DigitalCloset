@@ -24,7 +24,7 @@ import type {
 import { computed, unref } from "vue";
 import type { MaybeRef } from "vue";
 
-import type { Outfit } from ".././model";
+import type { Outfit, OutfitRequest } from ".././model";
 
 import { customInstance } from "../../mutator/custom-instance";
 
@@ -182,15 +182,18 @@ export function useGetById<
   return query;
 }
 
-export const update = (id: MaybeRef<number>, outfit: MaybeRef<Outfit>) => {
+export const update = (
+  id: MaybeRef<number>,
+  outfitRequest: MaybeRef<OutfitRequest>,
+) => {
   id = unref(id);
-  outfit = unref(outfit);
+  outfitRequest = unref(outfitRequest);
 
   return customInstance<Outfit>({
     url: `/api/outfits/${id}`,
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    data: outfit,
+    data: outfitRequest,
   });
 };
 
@@ -201,13 +204,13 @@ export const getUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof update>>,
     TError,
-    { id: number; data: Outfit },
+    { id: number; data: OutfitRequest },
     TContext
   >;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof update>>,
   TError,
-  { id: number; data: Outfit },
+  { id: number; data: OutfitRequest },
   TContext
 > => {
   const mutationKey = ["update"];
@@ -221,7 +224,7 @@ export const getUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof update>>,
-    { id: number; data: Outfit }
+    { id: number; data: OutfitRequest }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -234,7 +237,7 @@ export const getUpdateMutationOptions = <
 export type UpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof update>>
 >;
-export type UpdateMutationBody = Outfit;
+export type UpdateMutationBody = OutfitRequest;
 export type UpdateMutationError = unknown;
 
 export const useUpdate = <TError = unknown, TContext = unknown>(
@@ -242,7 +245,7 @@ export const useUpdate = <TError = unknown, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof update>>,
       TError,
-      { id: number; data: Outfit },
+      { id: number; data: OutfitRequest },
       TContext
     >;
   },
@@ -250,7 +253,7 @@ export const useUpdate = <TError = unknown, TContext = unknown>(
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof update>>,
   TError,
-  { id: number; data: Outfit },
+  { id: number; data: OutfitRequest },
   TContext
 > => {
   const mutationOptions = getUpdateMutationOptions(options);
@@ -458,14 +461,17 @@ export function useGetAll<
   return query;
 }
 
-export const create = (outfit: MaybeRef<Outfit>, signal?: AbortSignal) => {
-  outfit = unref(outfit);
+export const create = (
+  outfitRequest: MaybeRef<OutfitRequest>,
+  signal?: AbortSignal,
+) => {
+  outfitRequest = unref(outfitRequest);
 
   return customInstance<Outfit>({
     url: `/api/outfits`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    data: outfit,
+    data: outfitRequest,
     signal,
   });
 };
@@ -477,13 +483,13 @@ export const getCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof create>>,
     TError,
-    { data: Outfit },
+    { data: OutfitRequest },
     TContext
   >;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof create>>,
   TError,
-  { data: Outfit },
+  { data: OutfitRequest },
   TContext
 > => {
   const mutationKey = ["create"];
@@ -497,7 +503,7 @@ export const getCreateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof create>>,
-    { data: Outfit }
+    { data: OutfitRequest }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -510,7 +516,7 @@ export const getCreateMutationOptions = <
 export type CreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof create>>
 >;
-export type CreateMutationBody = Outfit;
+export type CreateMutationBody = OutfitRequest;
 export type CreateMutationError = unknown;
 
 export const useCreate = <TError = unknown, TContext = unknown>(
@@ -518,7 +524,7 @@ export const useCreate = <TError = unknown, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof create>>,
       TError,
-      { data: Outfit },
+      { data: OutfitRequest },
       TContext
     >;
   },
@@ -526,7 +532,7 @@ export const useCreate = <TError = unknown, TContext = unknown>(
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof create>>,
   TError,
-  { data: Outfit },
+  { data: OutfitRequest },
   TContext
 > => {
   const mutationOptions = getCreateMutationOptions(options);

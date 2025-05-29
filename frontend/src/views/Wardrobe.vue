@@ -272,7 +272,7 @@
 import { ref, computed, onMounted } from 'vue'
 import WardrobeGrid from '../components/WardrobeGrid.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
-import { useGetAll1, useCreate1, useUpdate1, useDelete1, useToggleFavorite } from '../api/generated/clothing-item-controller/clothing-item-controller'
+import { useGetAll1, useCreate1, useUpdate1, useDelete1, useToggleFavorite } from '../api/generated/clothing-items/clothing-items'
 import { uploadImage } from '../services/imageService'
 
 // State
@@ -350,20 +350,12 @@ const canSubmit = computed(() => {
 
 // Methods
 const handleImageUpload = async (file) => {
-  if (!file) {
-    newItem.value.imageUrl = null
-    return
-  }
-
   try {
     const imageUrl = await uploadImage(file)
-    if (!imageUrl) {
-      throw new Error('No image URL returned from server')
-    }
     newItem.value.imageUrl = imageUrl
   } catch (error) {
     console.error('Failed to upload image:', error)
-    alert(`Failed to upload image: ${error.message || 'Unknown error'}`)
+    alert('Failed to upload image. Please try again.')
   }
 }
 

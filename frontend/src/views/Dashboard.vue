@@ -11,12 +11,41 @@
           Ready to create some magical looks today?
         </p>
       </div>
+
+      <!-- Updated weather widget with loading/error states -->
       <div class="weather-widget">
         <div class="weather-info">
-          <div class="weather-icon">{{ weather.icon }}</div>
-          <div class="weather-details">
-            <span class="temperature">{{ weather.temperature }}°C</span>
-            <span class="condition">{{ weather.condition }}</span>
+          <!-- Loading state -->
+          <div v-if="weather.loading" class="weather-loading">
+            <div class="loading-spinner">🌀</div>
+            <div class="weather-details">
+              <span class="temperature">Loading...</span>
+              <span class="condition">Getting weather</span>
+            </div>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="weather.error" class="weather-error">
+            <div class="weather-icon">🌤️</div>
+            <div class="weather-details">
+              <span class="temperature">--°C</span>
+              <span class="condition">Weather unavailable</span>
+              <button @click="initWeatherWithFallback" class="retry-btn">
+                🔄 Retry
+              </button>
+            </div>
+          </div>
+
+          <!-- Success state -->
+          <div v-else class="weather-success">
+            <div class="weather-icon">{{ weather.icon }}</div>
+            <div class="weather-details">
+              <span class="temperature">{{ weather.temperature }}°C</span>
+              <span class="condition">{{ weather.condition }}</span>
+              <span v-if="weather.city" class="location">
+                📍 {{ weather.city }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -131,13 +160,138 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-// Sample data - replace with API calls
+// Weather state
 const weather = ref({
-  temperature: 22,
-  condition: 'Partly Cloudy',
-  icon: '⛅'
+  temperature: null,
+  condition: '',
+  icon: '🌤️',
+  loading: true,
+  error: null
 })
 
+// Weather icon mapping
+const weatherIcons = {
+  'clear sky': '☀️',
+  'few clouds': '🌤️',
+  'scattered clouds': '⛅',
+  'broken clouds': '☁️',
+  'shower rain': '🌦️',
+  'rain': '🌧️',
+  'thunderstorm': '⛈️',
+  'snow': '❄️',
+  'mist': '🌫️'
+}
+
+// Get user's location
+const getUserLocation = () => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported by this browser'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          })
+        },
+        (error) => {
+          reject(new Error(`Location error: ${error.message}`))
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+    )
+  })
+}
+
+// Fetch weather data from OpenWeatherMap
+const fetchWeatherData = async (lat, lon) => {
+  const API_KEY = 'YOUR_API_KEY_HERE' // Replace with your actual API key
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+
+  try {
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`Weather API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    return {
+      temperature: Math.round(data.main.temp),
+      condition: data.weather[0].description,
+      icon: weatherIcons[data.weather[0].description] || '🌤️',
+      humidity: data.main.humidity,
+      windSpeed: data.wind.speed,
+      city: data.name,
+      country: data.sys.country
+    }
+  } catch (error) {
+    throw new Error(`Failed to fetch weather: ${error.message}`)
+  }
+}
+
+// Alternative: IP-based location weather (no user permission needed)
+const fetchWeatherByIP = async () => {
+  try {
+    // First get location by IP
+    const ipResponse = await fetch('https://ipapi.co/json/')
+    const ipData = await ipResponse.json()
+
+    // Then get weather for that location
+    const weatherData = await fetchWeatherData(ipData.latitude, ipData.longitude)
+
+    return weatherData
+  } catch (error) {
+    throw new Error(`IP-based weather failed: ${error.message}`)
+  }
+}
+
+// Initialize weather with fallback
+const initWeatherWithFallback = async () => {
+  try {
+    weather.value.loading = true
+
+    try {
+      // Try GPS first
+      const location = await getUserLocation()
+      const weatherData = await fetchWeatherData(location.latitude, location.longitude)
+      weather.value = { ...weatherData, loading: false, error: null }
+    } catch (gpsError) {
+      console.log('GPS failed, trying IP location:', gpsError.message)
+
+      // Fallback to IP-based location
+      const weatherData = await fetchWeatherByIP()
+      weather.value = { ...weatherData, loading: false, error: null }
+    }
+
+  } catch (error) {
+    console.error('All weather methods failed:', error)
+    weather.value = {
+      temperature: '--',
+      condition: 'Weather unavailable',
+      icon: '🌤️',
+      loading: false,
+      error: error.message
+    }
+  }
+}
+
+// Optional: Refresh weather data periodically
+const startWeatherRefresh = () => {
+  // Refresh every 30 minutes
+  setInterval(() => {
+    initWeatherWithFallback()
+  }, 30 * 60 * 1000)
+}
+
+// Sample data
 const stats = ref({
   totalItems: 127,
   outfits: 23,
@@ -191,6 +345,7 @@ const recentActivity = ref([
   { id: 4, icon: '🌟', text: 'Wore "Office Chic" outfit', time: '2 days ago' }
 ])
 
+// Utility functions
 const getTimeOfDay = () => {
   const hour = new Date().getHours()
   if (hour < 12) return 'Morning'
@@ -200,16 +355,17 @@ const getTimeOfDay = () => {
 
 const selectRecommendation = (recommendation) => {
   console.log('Selected recommendation:', recommendation)
-  // Navigate to outfit creator with pre-selected items
 }
 
 const openUploadModal = () => {
   console.log('Opening upload modal')
-  // Open upload modal or navigate to upload page
 }
 
+// Initialize on component mount
 onMounted(() => {
-  // Fetch weather data, recommendations, etc.
+  initWeatherWithFallback()
+  // Optionally start auto-refresh
+  // startWeatherRefresh()
 })
 </script>
 
@@ -303,6 +459,53 @@ onMounted(() => {
   font-size: 1rem;
   color: #6b7280;
   font-weight: 500;
+}
+
+/* Weather loading and error states */
+.weather-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  font-size: 2rem;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.weather-error .retry-btn {
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.weather-error .retry-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.05);
+}
+
+.location {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.weather-success {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .section-title {

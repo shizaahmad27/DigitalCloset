@@ -10,15 +10,16 @@ import type { ClothingItemEventTypesItem } from "./clothingItemEventTypesItem";
 
 export interface ClothingItem {
   id?: number;
-  name?: string;
-  imageUrl?: string;
-  category?: ClothingItemCategory;
-  eventTypes?: ClothingItemEventTypesItem[];
-  brand?: string;
-  season?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  name: string;
+  category: ClothingItemCategory;
+  season: string;
   description?: string;
-  tags?: string[];
+  brand?: string;
+  imageUrl?: string;
+  isFavorite: boolean;
+  eventTypes: ClothingItemEventTypesItem[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
   favorite?: boolean;
 }

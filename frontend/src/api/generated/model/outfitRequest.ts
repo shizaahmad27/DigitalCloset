@@ -5,9 +5,9 @@
  * API for managing your digital closet
  * OpenAPI spec version: 1.0
  */
-import type { ClothingItem } from "./clothingItem";
 
-export type Create1Body = {
-  item: ClothingItem;
-  image: Blob;
-};
+export interface OutfitRequest {
+  name: string;
+  description?: string;
+  itemIds: number[];
+}

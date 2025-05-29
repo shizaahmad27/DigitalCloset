@@ -5,12 +5,13 @@
  * API for managing your digital closet
  * OpenAPI spec version: 1.0
  */
+import type { ClothingItem } from "./clothingItem";
 
 export interface Outfit {
-  id?: number;
-  name?: string;
+  id: number;
+  name: string;
   description?: string;
-  items?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  items: ClothingItem[];
+  createdAt: string;
+  updatedAt: string;
 }
