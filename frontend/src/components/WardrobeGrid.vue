@@ -1,4 +1,4 @@
-<!-- WardrobeGrid.vue - Fixed Pinterest-style masonry grid -->
+<!-- WardrobeGrid.vue -->
 <template>
   <div class="wardrobe-container">
     <!-- Header -->
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import ClothingCard from './ClothingCard.vue'
 import CategoryFilter from './CategoryFilter.vue'
 
@@ -61,11 +61,13 @@ const selectedCategory = ref('all')
 
 const categories = ref([
   { value: 'all', label: '✨ All Items', count: 0 },
-  { value: 'top', label: '👚 Tops', count: 0 },
-  { value: 'bottom', label: '👖 Bottoms', count: 0 },
-  { value: 'shoes', label: '👠 Shoes', count: 0 },
-  { value: 'accessory', label: '💍 Accessories', count: 0 },
-  { value: 'full_outfit', label: '👗 Full Outfits', count: 0 }
+  { value: 'TOP', label: '👚 Tops', count: 0 },
+  { value: 'BOTTOM', label: '👖 Bottoms', count: 0 },
+  { value: 'OUTERWEAR', label: '🧥 Outerwear', count: 0 },
+  { value: 'SHOES', label: '👠 Shoes', count: 0 },
+  { value: 'ACCESSORY', label: '💍 Accessories', count: 0 },
+  { value: 'DRESS', label: '👗 Dresses', count: 0 },
+  { value: 'OUTFIT', label: '👗 Full Outfits', count: 0 }
 ])
 
 const filteredItems = computed(() => {
@@ -73,7 +75,7 @@ const filteredItems = computed(() => {
     return props.items
   }
   return props.items.filter(item =>
-      item.category.toLowerCase() === selectedCategory.value
+    item.category === selectedCategory.value
   )
 })
 
@@ -101,14 +103,13 @@ const onDragStart = (item) => {
   emit('dragstart', item)
 }
 
-// Update category counts
 const updateCategoryCounts = () => {
   categories.value.forEach(category => {
     if (category.value === 'all') {
       category.count = props.items.length
     } else {
       category.count = props.items.filter(item =>
-          item.category.toLowerCase() === category.value
+        item.category === category.value
       ).length
     }
   })
@@ -117,6 +118,15 @@ const updateCategoryCounts = () => {
 onMounted(() => {
   updateCategoryCounts()
 })
+
+// Watch for changes in props.items and update counts
+watch(
+  () => props.items,
+  () => {
+    updateCategoryCounts()
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

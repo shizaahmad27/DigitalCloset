@@ -1,4 +1,4 @@
-<!-- Wardrobe.vue - Fixed main wardrobe view -->
+<!-- Wardrobe.vue -->
 <template>
   <div class="wardrobe-view">
     <WardrobeGrid
@@ -294,7 +294,6 @@ const selectedEventType = ref('')
 const page = ref(0)
 const size = ref(20)
 
-// API Hooks
 const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
   page: page.value,
   size: size.value,

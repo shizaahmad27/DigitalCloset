@@ -1,4 +1,4 @@
-<!-- ClothingCard.vue - Pinterest-style clothing item card -->
+<!-- ClothingCard.vue  -->
 <template>
   <div class="clothing-card group cursor-pointer" 
        :draggable="draggable"

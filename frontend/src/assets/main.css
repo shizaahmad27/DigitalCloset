@@ -2,7 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset any default Vue styling that might interfere */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -10,7 +17,6 @@ html, body {
   min-height: 100vh;
 }
 
-/* Remove the problematic #app styling that was constraining the layout */
 #app {
   width: 100%;
   min-height: 100vh;
@@ -18,7 +24,28 @@ html, body {
   padding: 0;
 }
 
-/* Keep your shadcn/ui variables */
+body {
+  min-height: 100vh;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -89,5 +116,19 @@ html, body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-4;
   }
 }

@@ -1,4 +1,3 @@
-<!-- CategoryFilter.vue - Glowy filter component -->
 <template>
   <div class="category-filter">
     <div class="filter-tabs">
@@ -14,83 +13,61 @@
   </div>
 </template>
 
-<script setup>
-import { defineProps, defineEmits } from 'vue'
+<script setup lang="ts">
+interface Category {
+  value: string
+  label: string
+  count: number
+}
 
-const props = defineProps({
-  categories: {
-    type: Array,
-    required: true
-  },
-  selectedCategory: {
-    type: String,
-    default: 'all'
-  }
+interface Props {
+  categories: Category[]
+  selectedCategory: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  selectedCategory: 'all'
 })
 
-const emit = defineEmits(['category-change'])
+const emit = defineEmits<{
+  'category-change': [category: string]
+}>()
 
-const selectCategory = (category) => {
+const selectCategory = (category: string) => {
   emit('category-change', category)
 }
 </script>
 
 <style scoped>
 .category-filter {
-  display: flex;
-  align-items: center;
+  @apply flex items-center;
 }
 
 .filter-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(20px);
-  border-radius: 25px;
-  padding: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  @apply flex gap-2 bg-white/20 backdrop-blur-xl rounded-full p-2 border border-white/30;
 }
 
 .filter-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 20px;
-  background: transparent;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  white-space: nowrap;
+  @apply flex items-center gap-2 px-4 py-2 border-none rounded-full bg-transparent text-gray-500 cursor-pointer transition-all duration-300 font-medium whitespace-nowrap;
 }
 
 .filter-tab:hover {
-  background: rgba(255, 255, 255, 0.3);
-  color: #374151;
-  transform: translateY(-1px);
+  @apply bg-white/30 text-gray-700 -translate-y-0.5;
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #f472b6, #ec4899);
-  color: white;
-  box-shadow: 0 4px 15px rgba(244, 114, 182, 0.4);
+  @apply bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-lg shadow-pink-400/40;
 }
 
 .tab-label {
-  font-size: 0.875rem;
+  @apply text-sm;
 }
 
 .tab-count {
-  background: rgba(255, 255, 255, 0.3);
-  padding: 0.125rem 0.5rem;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  @apply bg-white/30 px-2 py-0.5 rounded-full text-xs font-semibold;
 }
 
 .filter-tab.active .tab-count {
-  background: rgba(255, 255, 255, 0.4);
+  @apply bg-white/40;
 }
 </style>
