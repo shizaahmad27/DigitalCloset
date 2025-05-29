@@ -29,7 +29,9 @@
             <div class="weather-icon">🌤️</div>
             <div class="weather-details">
               <span class="temperature">--°C</span>
-              <span class="condition">Weather unavailable</span>
+              <span class="condition">
+                {{ weather.permissionDenied ? 'Please enable location access' : 'Weather unavailable' }}
+              </span>
               <button @click="initWeatherWithFallback" class="retry-btn">
                 🔄 Retry
               </button>
@@ -166,7 +168,8 @@ const weather = ref({
   condition: '',
   icon: '🌤️',
   loading: true,
-  error: null
+  error: null,
+  permissionDenied: false
 })
 
 // Weather icon mapping
@@ -198,6 +201,9 @@ const getUserLocation = () => {
           })
         },
         (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            weather.value.permissionDenied = true
+          }
           reject(new Error(`Location error: ${error.message}`))
         },
         {
@@ -211,18 +217,26 @@ const getUserLocation = () => {
 
 // Fetch weather data from OpenWeatherMap
 const fetchWeatherData = async (lat, lon) => {
-  const API_KEY = 'YOUR_API_KEY_HERE' // Replace with your actual API key
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY
+  
+  // Debug API key
+  if (!API_KEY) {
+    console.error('OpenWeatherMap API key is missing. Please check your .env file')
+    throw new Error('API key is not configured')
+  }
+  
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
 
   try {
     const response = await fetch(url)
 
     if (!response.ok) {
-      throw new Error(`Weather API error: ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Weather API error details:', errorData)
+      throw new Error(`Weather API error: ${response.status} - ${errorData.message || 'Unknown error'}`)
     }
 
     const data = await response.json()
-
     return {
       temperature: Math.round(data.main.temp),
       condition: data.weather[0].description,
@@ -233,6 +247,7 @@ const fetchWeatherData = async (lat, lon) => {
       country: data.sys.country
     }
   } catch (error) {
+    console.error('Weather fetch error:', error)
     throw new Error(`Failed to fetch weather: ${error.message}`)
   }
 }
@@ -266,7 +281,6 @@ const initWeatherWithFallback = async () => {
     } catch (gpsError) {
       console.log('GPS failed, trying IP location:', gpsError.message)
 
-      // Fallback to IP-based location
       const weatherData = await fetchWeatherByIP()
       weather.value = { ...weatherData, loading: false, error: null }
     }
@@ -364,8 +378,7 @@ const openUploadModal = () => {
 // Initialize on component mount
 onMounted(() => {
   initWeatherWithFallback()
-  // Optionally start auto-refresh
-  // startWeatherRefresh()
+  startWeatherRefresh()
 })
 </script>
 

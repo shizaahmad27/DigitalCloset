@@ -3,6 +3,7 @@
   <div class="wardrobe-view">
     <WardrobeGrid
         :items="clothingItems"
+        :outfits="outfits"
         @add-item="showAddItemModal = true"
         @item-click="viewItem"
         @favorite="toggleFavorite"
@@ -272,8 +273,10 @@
 import { ref, computed, onMounted } from 'vue'
 import WardrobeGrid from '../components/WardrobeGrid.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
+import OutfitCard from '../components/OutfitCard.vue'
 import { useGetAll1, useCreate1, useUpdate1, useDelete1, useToggleFavorite } from '../api/generated/clothing-items/clothing-items'
 import { uploadImage } from '../services/imageService'
+import { useGetAll } from '@/api/generated/outfit-controller/outfit-controller'
 
 // State
 const showAddItemModal = ref(false)
@@ -293,6 +296,8 @@ const newTag = ref('')
 const selectedEventType = ref('')
 const page = ref(0)
 const size = ref(20)
+const { data: outfitsData, refetch: refetchOutfits } = useGetAll()
+const outfits = computed(() => outfitsData.value || [])
 
 const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
   page: page.value,
@@ -439,7 +444,7 @@ const getCategoryEmoji = (category) => {
     BOTTOM: '👖',
     SHOES: '👠',
     ACCESSORY: '💍',
-    OUTFIT: '👗'
+    OUTFIT: '��'
   }
   return emojis[category] || '👕'
 }
@@ -481,8 +486,9 @@ const formatEventType = (eventType) => {
 }
 
 // Load initial data
-onMounted(() => {
+onMounted(async () => {
   refetchItems()
+  refetchOutfits()
 })
 </script>
 

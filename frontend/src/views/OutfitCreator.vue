@@ -11,6 +11,11 @@
             placeholder="Name your outfit..."
             class="outfit-name-input px-6 py-3 rounded-full border border-gray-200 bg-white/60 text-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
+        <input
+            v-model="outfitDescription"
+            placeholder="Describe your outfit..."
+            class="outfit-description-input px-6 py-3 rounded-full border border-gray-200 bg-white/60 text-lg focus:outline-none focus:ring-2 focus:ring-pink-400 mt-2"
+        />
         <button class="save-btn px-8 py-3 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-white font-semibold shadow-md hover:from-emerald-500 hover:to-cyan-500 transition disabled:opacity-50" @click="saveOutfit" :disabled="!canSave">
           💾 Save Outfit
         </button>
@@ -334,14 +339,14 @@
 
         <div class="p-6 max-h-[calc(85vh-200px)] overflow-y-auto">
           <div class="grid grid-cols-6 gap-4">
-            <div
+            <ClothingCard
                 v-for="item in filteredBrowserItems"
                 :key="item.id"
-                class="cursor-pointer transform hover:scale-105 transition-transform"
+                :item="item"
+                :draggable="true"
                 @click="selectItemFromBrowser(item)"
-            >
-              <ClothingCard :item="item" :draggable="false" />
-            </div>
+                @dragstart="closeWardrobeBrowser"
+            />
           </div>
 
           <div v-if="filteredBrowserItems.length === 0" class="text-center py-12">
@@ -358,8 +363,9 @@
 import { ref, computed } from 'vue'
 import ClothingCard from '../components/ClothingCard.vue'
 import { useGetAll1 } from '../api/generated/clothing-items/clothing-items'
-import OutfitPreview from '../components/OutfitPreview.vue'
+import { useCreate } from '@/api/generated/outfit-controller/outfit-controller'
 
+// API call to get clothing items
 const page = ref(0)
 const size = ref(100)
 const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
@@ -371,7 +377,9 @@ const { data: clothingItemsData, refetch: refetchItems } = useGetAll1({
 
 const wardrobeItems = computed(() => clothingItemsData.value?.content || [])
 
+// State management
 const outfitName = ref('')
+const outfitDescription = ref('')
 const dragOverZone = ref(null)
 const showWardrobeBrowser = ref(false)
 const browserCategory = ref('')
@@ -425,7 +433,7 @@ const filteredBrowserItems = computed(() => {
   return items
 })
 
-// Methods
+// Methods for item management
 const getItemCount = (category) => {
   return wardrobeItems.value.filter(item => item.category === category).length
 }
@@ -446,24 +454,32 @@ const closeWardrobeBrowser = () => {
 const getBrowserTitle = () => {
   const titles = {
     all: 'Browse All Items',
-    top: 'Browse Tops',
-    bottom: 'Browse Bottoms',
-    shoes: 'Browse Shoes',
-    accessory: 'Browse Accessories'
+    TOP: 'Browse Tops',
+    BOTTOM: 'Browse Bottoms',
+    SHOES: 'Browse Shoes',
+    ACCESSORY: 'Browse Accessories'
   }
   return titles[browserCategory.value] || 'Browse Wardrobe'
 }
 
 const selectItemFromBrowser = (item) => {
-  if (item.category === 'accessory') {
+  if (item.category === 'ACCESSORY') {
     if (!outfitItems.value.accessories.find(acc => acc.id === item.id)) {
       outfitItems.value.accessories.push(item)
     }
   } else {
-    outfitItems.value[item.category] = item
+    const categoryMap = {
+      'TOP': 'top',
+      'BOTTOM': 'bottom',
+      'SHOES': 'shoes'
+    }
+    const mappedCategory = categoryMap[item.category]
+    if (mappedCategory) {
+      outfitItems.value[mappedCategory] = item
+    }
   }
 
-  if (item.category !== 'accessory') {
+  if (item.category !== 'ACCESSORY') {
     closeWardrobeBrowser()
   }
 }
@@ -476,11 +492,17 @@ const onDrop = (event, zone) => {
     const item = JSON.parse(event.dataTransfer.getData('text/plain'))
 
     if (zone === 'accessory') {
-      if (item.category === 'accessory' && !outfitItems.value.accessories.find(acc => acc.id === item.id)) {
+      if (item.category === 'ACCESSORY' && !outfitItems.value.accessories.find(acc => acc.id === item.id)) {
         outfitItems.value.accessories.push(item)
       }
     } else {
-      if (item.category === zone) {
+      const categoryMap = {
+        'TOP': 'top',
+        'BOTTOM': 'bottom',
+        'SHOES': 'shoes'
+      }
+      const mappedCategory = categoryMap[item.category]
+      if (mappedCategory === zone) {
         outfitItems.value[zone] = item
       }
     }
@@ -499,6 +521,7 @@ const removeAccessory = (accessoryId) => {
   )
 }
 
+// Style analysis methods
 const getOutfitStyle = () => {
   const items = [
     outfitItems.value.top,
@@ -565,36 +588,43 @@ const getOutfitEvents = () => {
       .slice(0, 4) // Limit to 4 events
 }
 
+const createOutfit = useCreate({
+  mutation: {
+    onSuccess: () => {
+      refetchItems()
+      alert('✨ Outfit saved successfully!')
+    },
+    onError: (error) => {
+      alert('Failed to save outfit: ' + error.message)
+    }
+  }
+})
+
 const saveOutfit = () => {
   if (!canSave.value) return
 
-  const outfit = {
-    name: outfitName.value,
-    items: {
-      top: outfitItems.value.top?.id,
-      bottom: outfitItems.value.bottom?.id,
-      shoes: outfitItems.value.shoes?.id,
-      accessories: outfitItems.value.accessories.map(acc => acc.id)
-    },
-    style: getOutfitStyle(),
-    season: getSeasonMix(),
-    events: getOutfitEvents()
-  }
-
-  console.log('Saving outfit:', outfit)
-  // Here you would call your API to save the outfit
+  createOutfit.mutate({
+    data: {
+      name: outfitName.value,
+      description: outfitDescription.value,
+      itemIds: [
+        outfitItems.value.top?.id,
+        outfitItems.value.bottom?.id,
+        outfitItems.value.shoes?.id,
+        ...outfitItems.value.accessories.map(acc => acc.id)
+      ].filter(Boolean)
+    }
+  })
 
   // Reset form
   outfitName.value = ''
+  outfitDescription.value = ''
   outfitItems.value = {
     top: null,
     bottom: null,
     shoes: null,
     accessories: []
   }
-
-  // Show success message
-  alert('✨ Outfit saved successfully!')
 }
 </script>
 

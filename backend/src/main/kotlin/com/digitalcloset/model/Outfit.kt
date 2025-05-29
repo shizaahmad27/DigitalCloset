@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class Outfit(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,           // READ-ONLY - ID skal ikke endres
-    var name: String,           // MUTABLE - navn kan endres
+    var name: String = "",           // MUTABLE - navn kan endres
     var description: String? = null, // MUTABLE - beskrivelse kan endres
     @ManyToMany
     @JoinTable(

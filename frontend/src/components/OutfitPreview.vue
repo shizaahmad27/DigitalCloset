@@ -87,6 +87,7 @@
                     class="event-tag px-2 py-1 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-lg text-xs font-medium">
                 {{ event }}
               </span>
+              <span v-if="getOutfitEvents().length === 0" class="text-gray-400">No specific occasion detected</span>
             </div>
           </div>
         </div>

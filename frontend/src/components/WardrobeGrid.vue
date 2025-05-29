@@ -17,7 +17,15 @@
     </div>
 
     <!-- Grid Container -->
-    <div ref="gridContainer" class="masonry-grid">
+    <div v-if="selectedCategory === 'OUTFIT'" class="masonry-grid">
+      <OutfitCard
+        v-for="outfit in props.outfits"
+        :key="outfit.id"
+        :outfit="outfit"
+        :all-items="props.items"
+      />
+    </div>
+    <div v-else ref="gridContainer" class="masonry-grid">
       <ClothingCard
           v-for="item in filteredItems"
           :key="item.id"
@@ -31,13 +39,18 @@
     </div>
 
     <!-- Empty state -->
-    <div v-if="filteredItems.length === 0" class="empty-state">
+    <div v-if="selectedCategory !== 'OUTFIT' && filteredItems.length === 0" class="empty-state">
       <div class="empty-icon">👗</div>
       <h3 class="empty-title">Your wardrobe is waiting for magic!</h3>
       <p class="empty-description">Upload your first clothing item to get started</p>
       <button class="magic-btn" @click="$emit('add-item')">
         ✨ Add Your First Item
       </button>
+    </div>
+    <div v-if="selectedCategory === 'OUTFIT' && props.outfits.length === 0" class="empty-state">
+      <div class="empty-icon">🪄</div>
+      <h3 class="empty-title">No outfits yet!</h3>
+      <p class="empty-description">Create and save your first outfit to see it here.</p>
     </div>
   </div>
 </template>
@@ -46,9 +59,14 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import ClothingCard from './ClothingCard.vue'
 import CategoryFilter from './CategoryFilter.vue'
+import OutfitCard from './OutfitCard.vue'
 
 const props = defineProps({
   items: {
+    type: Array,
+    default: () => []
+  },
+  outfits: {
     type: Array,
     default: () => []
   }
@@ -67,7 +85,7 @@ const categories = ref([
   { value: 'SHOES', label: '👠 Shoes', count: 0 },
   { value: 'ACCESSORY', label: '💍 Accessories', count: 0 },
   { value: 'DRESS', label: '👗 Dresses', count: 0 },
-  { value: 'OUTFIT', label: '👗 Full Outfits', count: 0 }
+  { value: 'OUTFIT', label: '🪄 Full Outfits', count: 0 }
 ])
 
 const filteredItems = computed(() => {
@@ -107,6 +125,8 @@ const updateCategoryCounts = () => {
   categories.value.forEach(category => {
     if (category.value === 'all') {
       category.count = props.items.length
+    } else if (category.value === 'OUTFIT') {
+      category.count = props.outfits.length
     } else {
       category.count = props.items.filter(item =>
         item.category === category.value
