@@ -2,6 +2,7 @@ package com.digitalcloset.config
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.info.Contact
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -13,8 +14,12 @@ open class OpenApiConfig {
             .info(
                 Info()
                     .title("Digital Closet API")
-                    .description("API for managing your digital closet")
+                    .description("API for Digital Closet application")
                     .version("1.0")
+                    .contact(
+                        Contact()
+                            .name("Digital Closet Team")
+                    )
             )
     }
 } 

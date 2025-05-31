@@ -10,65 +10,45 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
-import { useRouter } from 'vue-router';
-const router = useRouter();
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+
+const router = useRouter()
+const { signup } = useAuth()
 
 // Schema for the registration form
-const rawSchema = z
-    .object({
-      firstName: z.string({ required_error: 'Firstname is required' }).min(5, 'Firstname must be minimum 5 letter'),
-      lastName: z.string({ required_error: 'Lastname is required' }).min(5, 'Lastname must be minimum 5 letter'),
-      email: z.string({ required_error: 'Email is required' }).email('Invalid email').min(5, 'Email must be minimum 5 letters'),
-      password: z
-          .string({ required_error: 'Password is required' })
-          .min(8, 'Password must be minimum 8 letters')
-          .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
-          .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
-          .regex(/[0-9]/, 'Må inneholde minst ett tall')
-          .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
-      confirmPassword: z.string({ required_error: 'Bekreft passord er påkrevd' }),
-      acceptedPrivacyPolicy: z.literal(true, {
-        errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
-      }),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: 'Passordene stemmer ikke overens',
-      path: ['confirmPassword'],
-    })
+const schema = toTypedSchema(
+  z.object({
+    firstname: z.string({ required_error: 'First name is required' })
+      .min(2, 'First name must be at least 2 characters'),
+    lastname: z.string({ required_error: 'Last name is required' })
+      .min(2, 'Last name must be at least 2 characters'),
+    username: z.string({ required_error: 'Username is required' })
+      .min(3, 'Username must be at least 3 characters'),
+    email: z.string({ required_error: 'Email is required' })
+      .email('Invalid email address'),
+    password: z.string({ required_error: 'Password is required' })
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Must contain at least one number')
+      .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
+    confirmPassword: z.string({ required_error: 'Please confirm your password' }),
+    acceptedPrivacyPolicy: z.literal(true, {
+      errorMap: () => ({ message: 'You must accept the privacy policy' }),
+    }),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+)
 
-// Set up consts for submit button deactivation
 const { handleSubmit, meta } = useForm({
-  validationSchema: toTypedSchema(rawSchema),
+  validationSchema: schema,
 })
-
-// Get auth store and toast
-const { toast } = useToast()
 
 // Loading state
 const isLoading = ref(false)
-
-// Function to parse error messages and provide specific user feedback
-const getErrorMessage = (error: { response?: { data?: { message?: string }; status?: number } }) => {
-  // Default message
-  const message = 'Kunne ikke registrere. Vennligst prøv igjen.';
-
-  // Extract error message from response if available
-  const errorMessage = error?.response?.data?.message || '';
-
-  if (error?.response?.status === 429) {
-    return 'For mange forsøk. Vennligst vent litt før du prøver igjen.';
-  }
-
-  if (error?.response?.status === 409) {
-    return 'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.';
-  }
-
-  if (error?.response?.status === 500) {
-    return 'Det oppstod en serverfeil. Vennligst prøv igjen senere.';
-  }
-
-  return errorMessage || message;
-}
 
 const onSubmit = handleSubmit(async (values) => {
   if (isLoading.value) return
@@ -76,26 +56,13 @@ const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
   try {
     const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
-    toast({
-      title: 'Suksess',
-      description: 'Kontoen din er opprettet og du er nå logget inn',
-      variant: 'default',
-    })
-    await router.push('/dashboard');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await signup(registrationData)
   } catch (error: any) {
-    toast({
-      title: 'Registreringsfeil',
-      description: getErrorMessage(error),
-      variant: 'destructive',
-    })
+    console.error('Registration error:', error)
   } finally {
     isLoading.value = false
   }
 })
-
-
-
 </script>
 
 <template>
@@ -104,12 +71,12 @@ const onSubmit = handleSubmit(async (values) => {
         @submit="onSubmit"
         class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">Registrer deg</h1>
+      <h1 class="text-3xl font-bold text-center">Create Account</h1>
 
       <!-- First Name -->
-      <FormField v-slot="{ componentField }" name="firstName">
+      <FormField v-slot="{ componentField }" name="firstname">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Fornavn</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">First Name</FormLabel>
           <FormControl>
             <div class="relative">
               <User
@@ -117,7 +84,7 @@ const onSubmit = handleSubmit(async (values) => {
               />
               <Input
                   type="text"
-                  placeholder="Ola"
+                  placeholder="John"
                   class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   v-bind="componentField"
               />
@@ -128,9 +95,9 @@ const onSubmit = handleSubmit(async (values) => {
       </FormField>
 
       <!-- Last Name -->
-      <FormField v-slot="{ componentField }" name="lastName">
+      <FormField v-slot="{ componentField }" name="lastname">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Etternavn</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Last Name</FormLabel>
           <FormControl>
             <div class="relative">
               <User
@@ -138,7 +105,28 @@ const onSubmit = handleSubmit(async (values) => {
               />
               <Input
                   type="text"
-                  placeholder="Nordmann"
+                  placeholder="Doe"
+                  class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  v-bind="componentField"
+              />
+            </div>
+          </FormControl>
+          <FormMessage class="text-sm text-red-500" />
+        </FormItem>
+      </FormField>
+
+      <!-- Username -->
+      <FormField v-slot="{ componentField }" name="username">
+        <FormItem>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Username</FormLabel>
+          <FormControl>
+            <div class="relative">
+              <User
+                  class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
+              <Input
+                  type="text"
+                  placeholder="johndoe"
                   class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   v-bind="componentField"
               />
@@ -151,7 +139,7 @@ const onSubmit = handleSubmit(async (values) => {
       <!-- Email -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">E-post</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Email</FormLabel>
           <FormControl>
             <div class="relative">
               <Mail
@@ -159,7 +147,7 @@ const onSubmit = handleSubmit(async (values) => {
               />
               <Input
                   type="email"
-                  placeholder="navn@eksempel.no"
+                  placeholder="name@example.com"
                   class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   v-bind="componentField"
               />
@@ -173,7 +161,7 @@ const onSubmit = handleSubmit(async (values) => {
       <FormField v-slot="{ componentField }" name="password">
         <PasswordInput
             name="password"
-            label="Passord"
+            label="Password"
             placeholder="********"
             :componentField="componentField"
             :showToggle="true"
@@ -185,13 +173,14 @@ const onSubmit = handleSubmit(async (values) => {
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <PasswordInput
             name="confirmPassword"
-            label="Bekreft passord"
+            label="Confirm Password"
             placeholder="********"
             :componentField="componentField"
             :showToggle="true"
             :showIcon="true"
         />
       </FormField>
+
       <!-- Accept Privacy Policy -->
       <FormField v-slot="{ value, handleChange }" name="acceptedPrivacyPolicy" type="checkbox">
         <FormItem>
@@ -208,18 +197,18 @@ const onSubmit = handleSubmit(async (values) => {
                   tabindex="0"
                   role="checkbox"
                   :aria-checked="value"
-                  aria-label="Godta personvernerklæringen"
+                  aria-label="Accept privacy policy"
               />
             </FormControl>
             <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700 cursor-pointer select-none">
-              Jeg godtar
+              I accept the
               <router-link
-                  to="/personvern"
+                  to="/privacy"
                   class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1"
                   tabindex="0"
-                  aria-label="Åpne personvernerklæringen"
+                  aria-label="Open privacy policy"
               >
-                personvernerklæringen
+                privacy policy
               </router-link>
             </label>
           </div>
@@ -233,15 +222,15 @@ const onSubmit = handleSubmit(async (values) => {
           :disabled="!meta.valid || isLoading"
           class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        <template v-if="isLoading">Oppretter konto...</template>
-        <template v-else>Registrer deg</template>
+        <template v-if="isLoading">Creating account...</template>
+        <template v-else>Create Account</template>
       </Button>
 
       <!-- Conditional CTAs below -->
       <div class="text-sm text-center space-y-2">
         <div>
-          <span class="text-gray-600">Har du allerede en konto?</span>
-          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Logg inn</a>
+          <span class="text-gray-600">Already have an account?</span>
+          <router-link to="/login" class="ml-1 text-blue-600 hover:underline">Sign in</router-link>
         </div>
       </div>
     </form>

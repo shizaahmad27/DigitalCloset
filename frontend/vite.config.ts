@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import path from 'path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -12,7 +13,19 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    port: 5173,
+  },
+  define: {
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+  },
+  // Suppress specific Vue warnings
+  optimizeDeps: {
+    exclude: ['@tanstack/vue-query']
+  }
 })
+

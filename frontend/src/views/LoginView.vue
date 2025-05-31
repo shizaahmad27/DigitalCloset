@@ -21,7 +21,7 @@ const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm
         @submit="onSubmit"
         class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">Innlogging</h1>
+      <h1 class="text-3xl font-bold text-center">Sign In</h1>
 
       <!-- Form-level error alert -->
       <Alert v-if="formError" variant="destructive" class="bg-red-50 border-red-300 text-red-700">
@@ -30,9 +30,9 @@ const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm
       </Alert>
 
       <!-- Email Field -->
-      <FormField v-slot="{ componentField }" name="identifier">
+      <FormField v-slot="{ componentField }" name="email">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">E-post</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Email</FormLabel>
           <FormControl>
             <div class="relative">
               <Mail
@@ -40,7 +40,7 @@ const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm
               />
               <Input
                   type="email"
-                  placeholder="navn@eksempel.no"
+                  placeholder="name@example.com"
                   class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   v-bind="componentField"
                   autocomplete="username"
@@ -55,7 +55,7 @@ const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm
       <FormField v-slot="{ componentField }" name="password">
         <PasswordInput
             name="password"
-            label="Passord"
+            label="Password"
             placeholder="********"
             :componentField="componentField"
             :showToggle="true"
@@ -70,20 +70,20 @@ const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm
           :disabled="((!meta.valid || !meta.dirty) && !hasAttemptedLogin) || isLoading"
           class="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        <template v-if="isLoading">Logger inn...</template>
-        <template v-else>Logg inn</template>
+        <template v-if="isLoading">Signing in...</template>
+        <template v-else>Sign In</template>
       </Button>
 
       <!-- Bottom links -->
       <div class="text-sm text-center space-y-2">
         <div>
-          <span class="text-gray-600">Har du ikke en konto?</span>
-          <a href="/registrer" class="ml-1 text-blue-600 hover:underline">Registrer deg</a>
+          <span class="text-gray-600">Don't have an account?</span>
+          <router-link to="/signup" class="ml-1 text-blue-600 hover:underline">Sign up</router-link>
         </div>
 
-        <a href="/glemt-passord" class="block text-blue-500 hover:underline">
-          Glemt passordet ditt?
-        </a>
+        <router-link to="/forgot-password" class="block text-blue-500 hover:underline">
+          Forgot your password?
+        </router-link>
       </div>
     </form>
   </div>

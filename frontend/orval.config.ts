@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval'
 
 export default defineConfig({
-  stockevaluator: {
+  digitalcloset: {
     input: {
       target: 'http://localhost:8080/v3/api-docs',
     },

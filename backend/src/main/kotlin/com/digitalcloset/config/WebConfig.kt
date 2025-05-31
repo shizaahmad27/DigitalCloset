@@ -12,10 +12,12 @@ open class WebConfig : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5173") // Vite's default port
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedOriginPatterns("*") // Allow all origins during development
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             .allowedHeaders("*")
+            .exposedHeaders("Authorization")
             .allowCredentials(true)
+            .maxAge(3600) // Cache preflight requests for 1 hour
     }
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
